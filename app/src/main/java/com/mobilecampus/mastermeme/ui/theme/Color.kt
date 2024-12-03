@@ -1,11 +1,41 @@
 package com.mobilecampus.mastermeme.ui.theme
 
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+//Solid colors
+internal val Onyx = Color(0xFF0F0D13)
+internal val Mirage = Color(0xFF1D1B20)
+internal val BalticSea = Color(0xFF2B2930)
+internal val Boulder = Color(0xFF79747E)
+internal val ButterflyBush = Color(0xFF65558F)
+internal val Lavender = Color(0xFFCCC2DC)
+internal val LavenderPinocchio = Color(0xFFE6E0E9)
+internal val LavenderPink = Color(0xFFEADDFF)
+internal val LavenderMist = Color(0xFFECE6F0)
+internal val CornellRed = Color(0xFFB3261E)
+internal val CherryPie = Color(0xFF21005D)
+
+//Gradient solid colors
+internal val LightViolet = Color(0xFFD0BCFE)
+internal val PaleLilac = Color(0xFFE0D0FA)
+internal val LightLavender = Color(0xFFAD90F1)
+
+// Gradient brushes
+internal val ButtonDefaultGradient = Brush.horizontalGradient(
+    colors = listOf(
+        LavenderPink, LightViolet
+    )
+)
+
+internal val ButtonPressedGradient = Brush.horizontalGradient(
+    colors = listOf(
+        PaleLilac, LightLavender
+    )
+)
+
+
+//Default
+internal val White = Color(0xFFFFFFFF)
+internal val Black = Color(0xFF000000)
