@@ -23,7 +23,8 @@ private val DarkColorScheme = darkColorScheme(
     primaryContainer = LavenderPink,
     surfaceContainerHighest = LavenderMist,
     error = CornellRed,
-    onPrimary = CherryPie
+    onPrimary = CherryPie,
+    background = Onyx
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -38,14 +39,15 @@ private val LightColorScheme = lightColorScheme(
     primaryContainer = LavenderPink,
     surfaceContainerHighest = LavenderMist,
     error = CornellRed,
-    onPrimary = CherryPie
+    onPrimary = CherryPie,
+    background = Onyx
 )
 
 @Composable
 fun MasterMemeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
