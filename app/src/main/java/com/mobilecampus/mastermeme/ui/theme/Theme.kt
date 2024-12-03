@@ -8,6 +8,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
@@ -40,7 +41,6 @@ private val LightColorScheme = lightColorScheme(
     onPrimary = CherryPie
 )
 
-
 @Composable
 fun MasterMemeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -58,9 +58,14 @@ fun MasterMemeTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    val extendedColorScheme = if (darkTheme) DarkExtendedColorScheme else LightExtendedColorScheme
+
+    CompositionLocalProvider(LocalExtendedColorScheme provides extendedColorScheme) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
+
 }
