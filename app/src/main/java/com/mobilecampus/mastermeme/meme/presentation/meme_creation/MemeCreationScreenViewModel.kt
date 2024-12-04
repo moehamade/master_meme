@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.meme_creation.presentation
+package com.mobilecampus.mastermeme.meme.presentation.meme_creation
 
 import androidx.lifecycle.ViewModel
 

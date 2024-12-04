@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.meme_list.presentation
+package com.mobilecampus.mastermeme.meme.presentation.meme_list
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.mobilecampus.mastermeme.meme.presentation.meme_list.navigation.MemeListNavigation
+import com.mobilecampus.mastermeme.meme.presentation.meme_list.navigation.memeListDestination
 import com.mobilecampus.mastermeme.meme_creation.presentation.navigation.memeCreationDestination
-import com.mobilecampus.mastermeme.meme_list.presentation.navigation.MemeListNavigation
-import com.mobilecampus.mastermeme.meme_list.presentation.navigation.memeListDestination
 
 @Composable
 fun MasterMemeNavHost(modifier: Modifier = Modifier) {

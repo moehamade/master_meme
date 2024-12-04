@@ -1,9 +1,9 @@
-package com.mobilecampus.mastermeme.meme_creation.presentation.navigation
+package com.mobilecampus.mastermeme.meme.presentation.meme_creation.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.mobilecampus.mastermeme.meme_creation.presentation.MemeCreationScreen
+import com.mobilecampus.mastermeme.meme.presentation.meme_creation.MemeCreationScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
