@@ -23,16 +23,13 @@ internal val PaleLilac = Color(0xFFE0D0FA)
 internal val LightLavender = Color(0xFFAD90F1)
 
 // Gradient brushes
-internal val ButtonDefaultGradient = Brush.horizontalGradient(
-    colors = listOf(
+internal val ButtonDefaultGradient =
+    listOf(
         LavenderPink, LightViolet
     )
-)
 
-internal val ButtonPressedGradient = Brush.horizontalGradient(
-    colors = listOf(
-        PaleLilac, LightLavender
-    )
+internal val ButtonPressedGradient = listOf(
+    PaleLilac, LightLavender
 )
 
 
