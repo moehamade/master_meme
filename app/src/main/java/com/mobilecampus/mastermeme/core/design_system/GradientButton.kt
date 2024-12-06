@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -27,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.mobilecampus.mastermeme.ui.theme.ExtendedTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GradientButton(
     onClick: () -> Unit,
@@ -34,22 +37,19 @@ fun GradientButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     shape: Shape = RoundedCornerShape(50),
     border: BorderStroke? = null,
-    backgroundGradient: Brush = ExtendedTheme.colorScheme.buttonDefault,
-    backgroundGradientPressed: Brush = ExtendedTheme.colorScheme.buttonPressed,
-    contentColor: Color = Color.White,
-    disabledContentColor: Color = Color.Gray,
+    backgroundGradient: List<Color> = ExtendedTheme.colorScheme.buttonDefault,
+    backgroundGradientPressed: List<Color> = ExtendedTheme.colorScheme.buttonPressed,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable RowScope.() -> Unit
 ) {
     Surface(
         modifier = Modifier
             .clip(shape)
-            .background(backgroundGradient)
             .clickable(
                 onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication = ripple(
-                    color = Color.Red
+                    color = backgroundGradientPressed[1]
                 )
 
             )
@@ -57,7 +57,14 @@ fun GradientButton(
         Row(
             modifier = modifier
                 .clip(shape)
-                .background(backgroundGradient)
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = backgroundGradient,
+                        start = Offset(0.0f, 50.0f),
+                        end = Offset(20f, 100.0f)
+
+                    )
+                )
                 .padding(contentPadding),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,

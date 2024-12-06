@@ -5,11 +5,12 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 
 @Immutable
 data class ExtendedColorScheme(
-    val buttonDefault: Brush,
-    val buttonPressed: Brush
+    val buttonDefault: List<Color>,
+    val buttonPressed : List<Color>
 )
 
 internal val LightExtendedColorScheme = ExtendedColorScheme(
