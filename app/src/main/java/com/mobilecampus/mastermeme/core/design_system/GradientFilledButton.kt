@@ -31,12 +31,11 @@ import com.mobilecampus.mastermeme.ui.theme.ExtendedTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GradientButton(
+fun GradientFilledButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     shape: Shape = RoundedCornerShape(50),
-    border: BorderStroke? = null,
     backgroundGradient: List<Color> = ExtendedTheme.colorScheme.buttonDefault,
     backgroundGradientPressed: List<Color> = ExtendedTheme.colorScheme.buttonPressed,
     contentPadding: PaddingValues = PaddingValues(16.dp),
@@ -51,7 +50,6 @@ fun GradientButton(
                 indication = ripple(
                     color = backgroundGradientPressed[1]
                 )
-
             )
     ) {
         Row(
@@ -79,7 +77,7 @@ fun GradientButton(
 @Composable
 private fun GradientButtonPreview() {
     MaterialTheme {
-        GradientButton(onClick = {}) {
+        GradientFilledButton(onClick = {}) {
             Text(text = "Demo")
         }
     }
@@ -91,7 +89,7 @@ private fun GradientButtonPreview() {
 @Composable
 private fun RectangleGradientButtonPreview() {
     MaterialTheme {
-        GradientButton(
+        GradientFilledButton(
             onClick = {}, shape = RoundedCornerShape(0.dp)
         ) {
             Text(text = "Demo")

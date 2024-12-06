@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.mobilecampus.mastermeme.core.design_system.GradientButton
+import com.mobilecampus.mastermeme.core.design_system.GradientFilledButton
 import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 
 class MainActivity : ComponentActivity() {
@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
-    GradientButton({}) {
+    GradientFilledButton({}) {
         Text(
             text = "Hello $name!",
             modifier = modifier
