@@ -3,7 +3,6 @@ package com.mobilecampus.mastermeme.meme.presentation.meme_list.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ButtonDefaults
@@ -18,6 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.mobilecampus.mastermeme.core.design_system.AppTopAppBar
+import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,9 +73,4 @@ fun MemeListTopAppBar(
         },
         modifier = modifier
     )
-}
-
-enum class SortOption(val displayName: String) {
-    FAVORITES_FIRST("Favorites First"),
-    NEWEST_FIRST("Newest First")
 }
