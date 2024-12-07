@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mobilecampus.mastermeme.R
@@ -57,26 +58,32 @@ fun MemeListScreen() {
             }
         }
     ) { paddingValues ->
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+        EmptyMemeListState(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_empty_meme),
-                contentDescription = "Empty state",
-                modifier = Modifier
+        )
+    }
+}
+
+@Composable
+fun EmptyMemeListState(modifier: Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_empty_meme),
+            contentDescription = "Empty state"
+        )
+        Text(
+            text = stringResource(R.string.tap_button_to_create_your_first_meme),
+            modifier = Modifier.padding(top = 34.dp),
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.outline,
+                textAlign = TextAlign.Center
             )
-            Text(
-                text = "Tap + button to create your first meme",
-                modifier = Modifier.padding(top = 34.dp),
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = MaterialTheme.colorScheme.outline,
-                    textAlign = TextAlign.Center
-                )
-            )
-        }
+        )
     }
 }

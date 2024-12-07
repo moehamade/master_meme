@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Master Meme</string>
+    <string name="tap_button_to_create_your_first_meme">Tap + button to create your first meme</string>
 </resources>
