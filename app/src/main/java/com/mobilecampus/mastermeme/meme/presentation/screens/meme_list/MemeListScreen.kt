@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -34,6 +38,9 @@ import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.core.presentation.design_system.ObserveAsEvents
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListViewModel.MemeListAction
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListViewModel.MemeListState
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import org.koin.androidx.compose.koinViewModel
@@ -100,6 +107,28 @@ fun MemeListScreen(
             }
         }
     ) { paddingValues ->
+        when (state) {
+            MemeListState.Empty -> EmptyMemeListState(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            )
+
+            is MemeListState.Error -> TODO()
+            is MemeListState.Loaded -> MemeGrid(
+                memes = state.memes,
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            )
+
+            MemeListState.Loading -> CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .wrapContentSize()
+            )
+        }
         Box(modifier = Modifier.fillMaxSize()) {
             // Main content
             EmptyMemeListState(
