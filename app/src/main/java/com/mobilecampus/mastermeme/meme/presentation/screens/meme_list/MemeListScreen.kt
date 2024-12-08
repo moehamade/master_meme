@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListViewModel.MemeListAction
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListViewModel.MemeListState
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import org.koin.androidx.compose.koinViewModel
 
@@ -43,7 +48,7 @@ fun MemeListScreenRoot() {
 @Composable
 fun MemeListScreen(
     state: MemeListState,
-    onAction : (MemeListAction) -> Unit
+    onAction: (MemeListAction) -> Unit
 ) {
     var isOpen by remember { mutableStateOf(false) }
     var selectedSortOption by remember { mutableStateOf(SortOption.FAVORITES_FIRST) }
@@ -73,11 +78,28 @@ fun MemeListScreen(
             }
         }
     ) { paddingValues ->
-        EmptyMemeListState(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-        )
+        when (state) {
+            MemeListState.Empty -> EmptyMemeListState(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            )
+
+            is MemeListState.Error -> TODO()
+            is MemeListState.Loaded -> MemeGrid(
+                memes = state.memes,
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            )
+
+            MemeListState.Loading -> CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .wrapContentSize()
+            )
+        }
     }
 }
 
