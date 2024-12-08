@@ -29,8 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
-import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListViewModel.MemeListAction
-import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListViewModel.MemeListState
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import org.koin.androidx.compose.koinViewModel

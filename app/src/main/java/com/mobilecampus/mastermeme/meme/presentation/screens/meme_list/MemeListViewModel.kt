@@ -62,20 +62,21 @@ class MemeListViewModel(
         }
     }
 
-    sealed interface MemeListAction {
-        data object OnCreateMemeClick : MemeListAction
-    }
+}
 
-    sealed class MemeListState {
-        data object Loading : MemeListState()
-        data class Loaded(
-            val memes: List<Meme>,
-            val sortMode: SortOption = SortOption.FAVORITES_FIRST,
-            val selectionMode: Boolean = false,
-            val selectedMemes: Set<Meme> = setOf()
-        ) : MemeListState()
+sealed interface MemeListAction {
+    data object OnCreateMemeClick : MemeListAction
+}
 
-        data class Error(val message: String) : MemeListState()
-        data object Empty : MemeListState()
-    }
+sealed class MemeListState {
+    data object Loading : MemeListState()
+    data class Loaded(
+        val memes: List<Meme>,
+        val sortMode: SortOption = SortOption.FAVORITES_FIRST,
+        val selectionMode: Boolean = false,
+        val selectedMemes: Set<Meme> = setOf()
+    ) : MemeListState()
+
+    data class Error(val message: String) : MemeListState()
+    data object Empty : MemeListState()
 }
