@@ -5,7 +5,7 @@ import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 
 sealed class MemeListState {
     object Loading : MemeListState()
-    data class Content(
+    data class Loaded(
         val memes: List<Meme>,
         val sortMode: SortOption = SortOption.FAVORITES_FIRST,
         val selectionMode: Boolean = false,

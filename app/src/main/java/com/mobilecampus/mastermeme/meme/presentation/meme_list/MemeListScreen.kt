@@ -25,11 +25,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mobilecampus.mastermeme.R
+import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import com.mobilecampus.mastermeme.meme.presentation.meme_list.components.MemeListTopAppBar
-import com.mobilecampus.mastermeme.meme.presentation.meme_list.components.SortOption
 
 @Composable
-fun MemeListScreen() {
+fun MemeListScreen(
+    state: MemeListState,
+    onAction : (MemeListAction) -> Unit
+) {
     var isOpen by remember { mutableStateOf(false) }
     var selectedSortOption by remember { mutableStateOf(SortOption.FAVORITES_FIRST) }
     var selectedItemsCount by remember { mutableIntStateOf(0) }
