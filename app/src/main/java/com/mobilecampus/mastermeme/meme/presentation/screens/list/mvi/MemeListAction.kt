@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.meme.presentation.meme_list
+package com.mobilecampus.mastermeme.meme.presentation.screens.list.mvi
 
 sealed interface MemeListAction {
     data object OnCreateMemeClick : MemeListAction

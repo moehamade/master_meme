@@ -1,10 +1,10 @@
-package com.mobilecampus.mastermeme.meme.presentation.meme_list
+package com.mobilecampus.mastermeme.meme.presentation.screens.list.mvi
 
 import com.mobilecampus.mastermeme.meme.domain.model.Meme
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 
 sealed class MemeListState {
-    object Loading : MemeListState()
+    data object Loading : MemeListState()
     data class Loaded(
         val memes: List<Meme>,
         val sortMode: SortOption = SortOption.FAVORITES_FIRST,
@@ -12,5 +12,5 @@ sealed class MemeListState {
         val selectedMemes: Set<Meme> = setOf()
     ) : MemeListState()
     data class Error(val message: String) : MemeListState()
-    object Empty : MemeListState()
+    data object Empty : MemeListState()
 }

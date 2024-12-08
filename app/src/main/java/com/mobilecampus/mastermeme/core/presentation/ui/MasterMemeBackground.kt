@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.core.ui
+package com.mobilecampus.mastermeme.core.presentation.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.LocalAbsoluteTonalElevation
