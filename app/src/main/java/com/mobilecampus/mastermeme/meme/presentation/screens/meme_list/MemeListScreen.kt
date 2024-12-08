@@ -38,8 +38,6 @@ import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.core.presentation.design_system.ObserveAsEvents
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
-import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListViewModel.MemeListAction
-import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListViewModel.MemeListState
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
