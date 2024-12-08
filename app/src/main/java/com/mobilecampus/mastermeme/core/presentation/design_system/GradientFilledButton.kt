@@ -1,7 +1,6 @@
-package com.mobilecampus.mastermeme.core.design_system
+package com.mobilecampus.mastermeme.core.presentation.design_system
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
