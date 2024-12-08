@@ -8,12 +8,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.mobilecampus.mastermeme.core.presentation.ui.MasterMemeBackground
+import com.mobilecampus.mastermeme.meme.presentation.meme_list.MemeListViewModel
+import com.mobilecampus.mastermeme.meme.presentation.meme_list.navigation.memeListDestination
 import com.mobilecampus.mastermeme.meme.presentation.screens.list.MemeListScreen
 import kotlinx.serialization.Serializable
+import org.koin.androidx.compose.koinViewModel
 
 // Navigation Destinations
 sealed interface NavGraph {
@@ -33,7 +37,6 @@ fun NavigationRoot(
                 .fillMaxSize()
                 .padding(
                     PaddingValues(
-                        top = innerPadding.calculateTopPadding(),
                         bottom = innerPadding.calculateBottomPadding(),
                         start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
                         end = innerPadding.calculateEndPadding(LayoutDirection.Ltr)
@@ -41,7 +44,12 @@ fun NavigationRoot(
                 )
         ) {
             composable<NavGraph.MemeList> {
-                MemeListScreen()
+                val vm = koinViewModel<MemeListViewModel>()
+                val state = vm.uiState.collectAsStateWithLifecycle().value
+                MemeListScreen(
+                    state =state,
+                    onAction = {}
+                )
             }
         }
     }

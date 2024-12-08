@@ -6,6 +6,8 @@ import com.mobilecampus.mastermeme.meme.domain.use_case.DeleteMemeUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
+import com.mobilecampus.mastermeme.meme.presentation.screens.list.mvi.MemeListAction
+import com.mobilecampus.mastermeme.meme.presentation.screens.list.mvi.MemeListState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn

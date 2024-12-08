@@ -3,8 +3,8 @@ package com.mobilecampus.mastermeme.meme.presentation.meme_list.navigation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.mobilecampus.mastermeme.meme.presentation.meme_list.MemeListScreen
 import com.mobilecampus.mastermeme.meme.presentation.meme_list.MemeListViewModel
+import com.mobilecampus.mastermeme.meme.presentation.screens.list.MemeListScreen
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 
