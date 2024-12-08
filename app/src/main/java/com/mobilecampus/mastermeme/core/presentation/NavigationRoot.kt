@@ -14,7 +14,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.mobilecampus.mastermeme.core.presentation.ui.MasterMemeBackground
 import com.mobilecampus.mastermeme.meme.presentation.meme_list.MemeListViewModel
-import com.mobilecampus.mastermeme.meme.presentation.meme_list.navigation.memeListDestination
 import com.mobilecampus.mastermeme.meme.presentation.screens.list.MemeListScreen
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
