@@ -19,6 +19,11 @@ import org.koin.core.logger.Level
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        startKoin {
+            androidLogger(Level.ERROR)
+            androidContext(this@MainActivity)
+            modules(listOf(memeDataModule, domainModule, presentationModule))
+        }
         installSplashScreen()
         enableEdgeToEdge()
         setContent {
