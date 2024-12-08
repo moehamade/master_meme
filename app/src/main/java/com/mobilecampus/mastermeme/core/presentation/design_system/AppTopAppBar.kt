@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.core.design_system
+package com.mobilecampus.mastermeme.core.presentation.design_system
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
