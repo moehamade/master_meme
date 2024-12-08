@@ -8,19 +8,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import com.mobilecampus.mastermeme.core.presentation.ui.MasterMemeBackground
-import com.mobilecampus.mastermeme.meme.presentation.meme_list.MemeListViewModel
-import com.mobilecampus.mastermeme.meme.presentation.screens.list.MemeListScreen
+import com.mobilecampus.mastermeme.core.presentation.design_system.MasterMemeBackground
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.navigation.memeListDestination
 import kotlinx.serialization.Serializable
-import org.koin.androidx.compose.koinViewModel
 
-// Navigation Destinations
 sealed interface NavGraph {
-    @Serializable data object MemeList: NavGraph
+    @Serializable
+    data object MemeList : NavGraph
 }
 
 @Composable
@@ -42,14 +38,7 @@ fun NavigationRoot(
                     )
                 )
         ) {
-            composable<NavGraph.MemeList> {
-                val vm = koinViewModel<MemeListViewModel>()
-                val state = vm.uiState.collectAsStateWithLifecycle().value
-                MemeListScreen(
-                    state =state,
-                    onAction = {}
-                )
-            }
+            memeListDestination()
         }
     }
 }

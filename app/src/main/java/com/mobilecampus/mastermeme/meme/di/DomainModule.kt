@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.meme.domain.di
+package com.mobilecampus.mastermeme.meme.di
 
 import com.mobilecampus.mastermeme.meme.data.local.use_case.DeleteMemeUseCaseImpl
 import com.mobilecampus.mastermeme.meme.data.local.use_case.GetMemesUseCaseImpl

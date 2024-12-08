@@ -1,13 +1,13 @@
-package com.mobilecampus.mastermeme.meme.presentation.meme_list
+package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mobilecampus.mastermeme.meme.domain.model.Meme
+import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import com.mobilecampus.mastermeme.meme.domain.use_case.DeleteMemeUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
-import com.mobilecampus.mastermeme.meme.presentation.screens.list.mvi.MemeListAction
-import com.mobilecampus.mastermeme.meme.presentation.screens.list.mvi.MemeListState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -36,4 +36,20 @@ class MemeListViewModel(
         }
     }
 
+}
+
+sealed interface MemeListAction {
+    data object OnCreateMemeClick : MemeListAction
+}
+
+sealed class MemeListState {
+    data object Loading : MemeListState()
+    data class Loaded(
+        val memes: List<Meme>,
+        val sortMode: SortOption = SortOption.FAVORITES_FIRST,
+        val selectionMode: Boolean = false,
+        val selectedMemes: Set<Meme> = setOf()
+    ) : MemeListState()
+    data class Error(val message: String) : MemeListState()
+    data object Empty : MemeListState()
 }

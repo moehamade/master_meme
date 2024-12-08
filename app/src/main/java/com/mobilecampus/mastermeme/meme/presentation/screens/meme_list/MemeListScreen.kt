@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.meme.presentation.screens.list
+package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -24,11 +24,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
-import com.mobilecampus.mastermeme.meme.presentation.screens.list.components.MemeListTopAppBar
-import com.mobilecampus.mastermeme.meme.presentation.screens.list.mvi.MemeListAction
-import com.mobilecampus.mastermeme.meme.presentation.screens.list.mvi.MemeListState
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
+import org.koin.androidx.compose.koinViewModel
+
+@Composable
+fun MemeListScreenRoot() {
+    val viewModel = koinViewModel<MemeListViewModel>()
+    val state = viewModel.uiState.collectAsStateWithLifecycle().value
+    MemeListScreen(
+        state = state,
+        onAction = {}
+    )
+}
 
 @Composable
 fun MemeListScreen(

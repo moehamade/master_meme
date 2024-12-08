@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.meme.presentation.screens.list.components
+package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
