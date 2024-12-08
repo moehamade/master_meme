@@ -3,6 +3,7 @@ package com.mobilecampus.mastermeme.meme.domain.model
 data class Meme(
     val id: Int,
     val title: String,
-    val imageUrl: String,
-    val isFavorite: Boolean
+    val imageUri: String,  // Local file URI
+    val isFavorite: Boolean,
+    val createdAt: Long = System.currentTimeMillis()
 )
