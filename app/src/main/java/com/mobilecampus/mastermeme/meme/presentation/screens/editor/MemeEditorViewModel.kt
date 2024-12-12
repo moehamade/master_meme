@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
+import com.mobilecampus.mastermeme.meme.domain.use_case.SaveMemeUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -28,7 +29,7 @@ sealed class MemeEditorAction {
     data object ToggleFont : MemeEditorAction()
     data object SetFontSizeNormal : MemeEditorAction()
     data object SetFontSizeLarge : MemeEditorAction()
-    data object SaveMeme : MemeEditorAction()
+    data class SaveMeme(val resId: Int) : MemeEditorAction()
 
     data class StartEditingText(val textBox: TextBox) : MemeEditorAction()
     data class ConfirmTextChange(val newText: String) : MemeEditorAction()
@@ -41,11 +42,11 @@ sealed class MemeEditorAction {
 }
 
 sealed interface MemeEditorEvent {
-    data class OnSaveResult(val success: Boolean) : MemeEditorEvent
+    data class OnSaveResult(val success: Boolean, val filePath: String? = null): MemeEditorEvent
 }
 
 class MemeEditorViewModel(
-    //private val saveMemeUseCase: SaveMemeUseCase
+    private val saveMemeUseCase: SaveMemeUseCase
 ) : ViewModel() {
 
     private var _state by mutableStateOf(MemeEditorState())
@@ -63,7 +64,7 @@ class MemeEditorViewModel(
             MemeEditorAction.ToggleFont -> toggleFont()
             MemeEditorAction.SetFontSizeNormal -> setFontSize(36f)
             MemeEditorAction.SetFontSizeLarge -> setFontSize(48f)
-            MemeEditorAction.SaveMeme -> saveMeme()
+            is MemeEditorAction.SaveMeme -> saveMeme(event.resId)
 
             is MemeEditorAction.StartEditingText -> startEditing(event.textBox)
             is MemeEditorAction.ConfirmTextChange -> confirmTextChange(event.newText)
@@ -168,38 +169,29 @@ class MemeEditorViewModel(
         _state = _state.copy(imageOffset = offset, imageSize = size)
     }
 
-    private fun saveMeme() {
+    private fun saveMeme(resId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-
-            eventChannel.send(MemeEditorEvent.OnSaveResult(true))
-
-//            val result = saveMemeUseCase.saveMeme(
-//                backgroundImageResId = backgroundImageResId,
-//                textBoxes = state.textBoxes,
-//                imageOffsetX = state.imageOffset.x,
-//                imageOffsetY = state.imageOffset.y,
-//                imageWidth = state.imageSize.width,
-//                imageHeight = state.imageSize.height
-//            )
-//            _saveCompleted.value = result.isSuccess
+            saveMemeUseCase.saveMeme(
+                backgroundImageResId = resId,
+                textBoxes = state.textBoxes,
+                imageOffsetX = state.imageOffset.x,
+                imageOffsetY = state.imageOffset.y,
+                imageWidth = state.imageSize.width,
+                imageHeight = state.imageSize.height
+            ).onSuccess { path ->
+                eventChannel.send(MemeEditorEvent.OnSaveResult(success = true, filePath = path))
+            }.onFailure { _ ->
+                eventChannel.send(MemeEditorEvent.OnSaveResult(success = false))
+            }
         }
     }
 }
 
-
-
-
-
-
-
-fun measureInitialTextBoxPosition(
+private fun measureInitialTextBoxPosition(
     text: String,
     fontSizeSp: Float,
     imageSize: IntSize
 ): Pair<Offset, androidx.compose.ui.geometry.Size> {
-    // We can estimate a simple text size without accessing Android Context here.
-    // For simplicity, just place it roughly in the center:
-    // (If you require precise measurement, you'd do that in the use case or another layer where you have a context)
     val approximateWidth = fontSizeSp * text.length / 2f
     val approximateHeight = fontSizeSp * 2f
 
@@ -209,7 +201,7 @@ fun measureInitialTextBoxPosition(
     return Offset(initialCenterX, initialCenterY) to androidx.compose.ui.geometry.Size(approximateWidth, approximateHeight)
 }
 
-fun findNonOverlappingPosition(
+private fun findNonOverlappingPosition(
     textBoxes: List<TextBox>,
     imageSize: IntSize,
     initialPosition: Offset,
@@ -237,15 +229,3 @@ fun findNonOverlappingPosition(
     }
     return position
 }
-
-interface SaveMemeUseCase {
-    suspend fun saveMeme(
-        backgroundImageResId: Int,
-        textBoxes: List<TextBox>,
-        imageOffsetX: Float,
-        imageOffsetY: Float,
-        imageWidth: Int,
-        imageHeight: Int
-    ): Result<Unit>
-}
-

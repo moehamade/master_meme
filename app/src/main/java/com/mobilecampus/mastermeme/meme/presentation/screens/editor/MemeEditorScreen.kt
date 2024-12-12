@@ -40,6 +40,15 @@ fun MemeEditorScreenRoot(
         when (event) {
             is MemeEditorEvent.OnSaveResult -> {
                 val success = event.success
+                val path = event.filePath
+
+                path?.let {
+                    // if path is defined... vordead my friend this is the saved image
+                    // do something here, or better do something back in the viewmodel
+                    // so that you associate the local image path with room :)
+                    // kaboom
+                }
+
                 val message = if (success) "Meme saved successfully!" else "Failed to save meme!"
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }
@@ -127,7 +136,7 @@ fun MemeEditorScreen(
                 Button(onClick = { onAction(MemeEditorAction.AddTextBox) }) {
                     Text("Add Text Box")
                 }
-                Button(onClick = { onAction(MemeEditorAction.SaveMeme) }) {
+                Button(onClick = { onAction(MemeEditorAction.SaveMeme(resId)) }) {
                     Text("Save Meme")
                 }
             }
