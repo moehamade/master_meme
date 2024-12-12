@@ -10,13 +10,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.mobilecampus.mastermeme.core.presentation.design_system.MasterMemeBackground
-import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.navigation.memeListDestination
+import com.mobilecampus.mastermeme.meme.presentation.screens.editor.MemeEditorScreen
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListScreenRoot
 import kotlinx.serialization.Serializable
 
 sealed interface NavGraph {
-    @Serializable
-    data object MemeList : NavGraph
+    @Serializable data object MemeList: NavGraph
+    @Serializable data class MemeEditor(val id: Int): NavGraph
 }
 
 @Composable
@@ -38,7 +41,16 @@ fun NavigationRoot(
                     )
                 )
         ) {
-            memeListDestination()
+            composable<NavGraph.MemeList> {
+                MemeListScreenRoot({ resId ->
+                    navController.navigate(NavGraph.MemeEditor(resId))
+                })
+            }
+
+            composable<NavGraph.MemeEditor> {
+                val args = it.toRoute<NavGraph.MemeEditor>()
+               MemeEditorScreen(backgroundImageResId = args.id)
+            }
         }
     }
 }

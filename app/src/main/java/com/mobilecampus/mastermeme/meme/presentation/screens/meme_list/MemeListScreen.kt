@@ -39,14 +39,19 @@ import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.component
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun MemeListScreenRoot() {
+fun MemeListScreenRoot(
+    onOpenEditorScreen: (resId: Int) -> Unit,
+) {
     val viewModel = koinViewModel<MemeListViewModel>()
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is MemeListScreenEvent.OnGotoEditorScreen -> {
-                println("Goto editor screen with id: ${event.id}")
+                event.id.toIntOrNull()?.let {
+                    onOpenEditorScreen(it)
+                }
+                //println("Goto editor screen with id: ${event.id}")
             }
         }
     }
