@@ -36,10 +36,13 @@ fun MemeEditorScreenRoot(
     val state = viewModel.state
 
     // Observe saveCompleted events
-    ObserveAsEvents(flow = viewModel.saveCompleted) { saveSuccess ->
-        saveSuccess?.let {
-            val message = if (it) "Meme saved successfully!" else "Failed to save meme!"
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    ObserveAsEvents(flow = viewModel.events) { event ->
+        when (event) {
+            is MemeEditorEvent.OnSaveResult -> {
+                val success = event.success
+                val message = if (success) "Meme saved successfully!" else "Failed to save meme!"
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            }
         }
     }
 

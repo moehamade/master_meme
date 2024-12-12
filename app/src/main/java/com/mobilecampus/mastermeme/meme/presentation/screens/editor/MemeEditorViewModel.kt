@@ -11,8 +11,8 @@ import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 data class MemeEditorState(
@@ -40,6 +40,10 @@ sealed class MemeEditorAction {
     data class UpdateImagePosition(val offset: Offset, val size: IntSize) : MemeEditorAction()
 }
 
+sealed interface MemeEditorEvent {
+    data class OnSaveResult(val success: Boolean) : MemeEditorEvent
+}
+
 class MemeEditorViewModel(
     //private val saveMemeUseCase: SaveMemeUseCase
 ) : ViewModel() {
@@ -47,10 +51,11 @@ class MemeEditorViewModel(
     private var _state by mutableStateOf(MemeEditorState())
     val state: MemeEditorState get() = _state
 
-    private var nextId = 0
+    // Channel for one-time events
+    private val eventChannel = Channel<MemeEditorEvent>(Channel.BUFFERED)
+    val events = eventChannel.receiveAsFlow()
 
-    private val _saveCompleted = MutableStateFlow<Boolean?>(null)
-    val saveCompleted: StateFlow<Boolean?> = _saveCompleted
+    private var nextId = 0
 
     fun onAction(event: MemeEditorAction) {
         when (event) {
@@ -165,6 +170,9 @@ class MemeEditorViewModel(
 
     private fun saveMeme() {
         viewModelScope.launch(Dispatchers.IO) {
+
+            eventChannel.send(MemeEditorEvent.OnSaveResult(true))
+
 //            val result = saveMemeUseCase.saveMeme(
 //                backgroundImageResId = backgroundImageResId,
 //                textBoxes = state.textBoxes,
