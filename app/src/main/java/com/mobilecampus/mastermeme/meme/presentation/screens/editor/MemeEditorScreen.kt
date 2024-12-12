@@ -1,6 +1,7 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor
 
 import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +30,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MemeEditorScreenRoot(
-    backgroundImageResId: Int,
+    @DrawableRes backgroundImageResId: Int,
     viewModel: MemeEditorViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
@@ -64,7 +65,7 @@ fun MemeEditorScreenRoot(
 
 @Composable
 fun MemeEditorScreen(
-    resId: Int,
+    @DrawableRes resId: Int,
     state: MemeEditorState,
     onAction: (MemeEditorAction) -> Unit
 ) {

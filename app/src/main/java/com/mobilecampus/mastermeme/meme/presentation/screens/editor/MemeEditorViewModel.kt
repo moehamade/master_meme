@@ -1,5 +1,6 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor
 
+import androidx.annotation.DrawableRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -29,7 +30,7 @@ sealed class MemeEditorAction {
     data object ToggleFont : MemeEditorAction()
     data object SetFontSizeNormal : MemeEditorAction()
     data object SetFontSizeLarge : MemeEditorAction()
-    data class SaveMeme(val resId: Int) : MemeEditorAction()
+    data class SaveMeme(@DrawableRes val resId: Int) : MemeEditorAction()
 
     data class StartEditingText(val textBox: TextBox) : MemeEditorAction()
     data class ConfirmTextChange(val newText: String) : MemeEditorAction()

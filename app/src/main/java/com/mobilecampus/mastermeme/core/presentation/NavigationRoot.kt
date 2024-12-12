@@ -1,5 +1,6 @@
 package com.mobilecampus.mastermeme.core.presentation
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -19,7 +20,7 @@ import kotlinx.serialization.Serializable
 
 sealed interface NavGraph {
     @Serializable data object MemeList: NavGraph
-    @Serializable data class MemeEditor(val id: Int): NavGraph
+    @Serializable data class MemeEditor(@DrawableRes val resId: Int): NavGraph
 }
 
 @Composable
@@ -49,7 +50,7 @@ fun NavigationRoot(
 
             composable<NavGraph.MemeEditor> {
                 val args = it.toRoute<NavGraph.MemeEditor>()
-               MemeEditorScreenRoot(backgroundImageResId = args.id)
+               MemeEditorScreenRoot(backgroundImageResId = args.resId)
             }
         }
     }
