@@ -1,5 +1,5 @@
 [versions]
-agp = "8.9.0-alpha04"
+agp = "8.7.3"
 kotlin = "2.1.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -7,12 +7,12 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
-composeBom = "2024.11.00"
-uiTextGoogleFonts = "1.7.5"
+composeBom = "2024.12.01"
+uiTextGoogleFonts = "1.7.6"
 
 #CUSTOM VERSIONS FROM HERE ON -->
 coreSplashscreen = "1.0.1"
-navigationCompose = "2.8.4"
+navigationCompose = "2.8.5"
 kotlinxSerializationJson = "1.7.3"
 
 coilCompose = "3.0.4"

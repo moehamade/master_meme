@@ -8,8 +8,10 @@ import com.mobilecampus.mastermeme.meme.domain.use_case.DeleteMemeUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -26,11 +28,17 @@ class MemeListViewModel(
         initialValue = MemeListState.Loading
     )
 
+    // Event channel for one-time UI events
+    private val eventChannel = Channel<MemeListScreenEvent>(Channel.BUFFERED)
+    val events = eventChannel.receiveAsFlow()
+
     fun onAction(action: MemeListAction) {
         viewModelScope.launch {
             when (action) {
-                MemeListAction.OnCreateMemeClick -> {
-
+                is MemeListAction.MemeClickAction -> {
+                    eventChannel.send(
+                        MemeListScreenEvent.OnGotoEditorScreen(action.id)
+                    )
                 }
             }
         }
@@ -39,7 +47,7 @@ class MemeListViewModel(
 }
 
 sealed interface MemeListAction {
-    data object OnCreateMemeClick : MemeListAction
+    data class MemeClickAction(val id: String) : MemeListAction
 }
 
 sealed class MemeListState {
@@ -52,4 +60,8 @@ sealed class MemeListState {
     ) : MemeListState()
     data class Error(val message: String) : MemeListState()
     data object Empty : MemeListState()
+}
+
+sealed interface MemeListScreenEvent {
+    data class OnGotoEditorScreen(val id: String): MemeListScreenEvent
 }
