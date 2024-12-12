@@ -23,25 +23,24 @@ data class MemeEditorState(
     val imageSize: IntSize = IntSize.Zero
 )
 
-sealed class MemeEditorEvent {
-    data object AddTextBox : MemeEditorEvent()
-    data object ToggleFont : MemeEditorEvent()
-    data object SetFontSizeNormal : MemeEditorEvent()
-    data object SetFontSizeLarge : MemeEditorEvent()
-    data object SaveMeme : MemeEditorEvent()
+sealed class MemeEditorAction {
+    data object AddTextBox : MemeEditorAction()
+    data object ToggleFont : MemeEditorAction()
+    data object SetFontSizeNormal : MemeEditorAction()
+    data object SetFontSizeLarge : MemeEditorAction()
+    data object SaveMeme : MemeEditorAction()
 
-    data class StartEditingText(val textBox: TextBox) : MemeEditorEvent()
-    data class ConfirmTextChange(val newText: String) : MemeEditorEvent()
-    data object CancelEditing : MemeEditorEvent()
+    data class StartEditingText(val textBox: TextBox) : MemeEditorAction()
+    data class ConfirmTextChange(val newText: String) : MemeEditorAction()
+    data object CancelEditing : MemeEditorAction()
 
-    data class UpdateTextBoxPosition(val id: Int, val newPos: Offset) : MemeEditorEvent()
-    data class DeleteTextBox(val id: Int) : MemeEditorEvent()
-    data class SelectTextBox(val id: Int) : MemeEditorEvent()
-    data class UpdateImagePosition(val offset: Offset, val size: IntSize) : MemeEditorEvent()
+    data class UpdateTextBoxPosition(val id: Int, val newPos: Offset) : MemeEditorAction()
+    data class DeleteTextBox(val id: Int) : MemeEditorAction()
+    data class SelectTextBox(val id: Int) : MemeEditorAction()
+    data class UpdateImagePosition(val offset: Offset, val size: IntSize) : MemeEditorAction()
 }
 
 class MemeEditorViewModel(
-    //private val backgroundImageResId: Int,
     //private val saveMemeUseCase: SaveMemeUseCase
 ) : ViewModel() {
 
@@ -53,22 +52,22 @@ class MemeEditorViewModel(
     private val _saveCompleted = MutableStateFlow<Boolean?>(null)
     val saveCompleted: StateFlow<Boolean?> = _saveCompleted
 
-    fun onEvent(event: MemeEditorEvent) {
+    fun onAction(event: MemeEditorAction) {
         when (event) {
-            MemeEditorEvent.AddTextBox -> addTextBox()
-            MemeEditorEvent.ToggleFont -> toggleFont()
-            MemeEditorEvent.SetFontSizeNormal -> setFontSize(36f)
-            MemeEditorEvent.SetFontSizeLarge -> setFontSize(48f)
-            MemeEditorEvent.SaveMeme -> saveMeme()
+            MemeEditorAction.AddTextBox -> addTextBox()
+            MemeEditorAction.ToggleFont -> toggleFont()
+            MemeEditorAction.SetFontSizeNormal -> setFontSize(36f)
+            MemeEditorAction.SetFontSizeLarge -> setFontSize(48f)
+            MemeEditorAction.SaveMeme -> saveMeme()
 
-            is MemeEditorEvent.StartEditingText -> startEditing(event.textBox)
-            is MemeEditorEvent.ConfirmTextChange -> confirmTextChange(event.newText)
-            MemeEditorEvent.CancelEditing -> cancelEditing()
+            is MemeEditorAction.StartEditingText -> startEditing(event.textBox)
+            is MemeEditorAction.ConfirmTextChange -> confirmTextChange(event.newText)
+            MemeEditorAction.CancelEditing -> cancelEditing()
 
-            is MemeEditorEvent.UpdateTextBoxPosition -> updateTextBoxPosition(event.id, event.newPos)
-            is MemeEditorEvent.DeleteTextBox -> deleteTextBox(event.id)
-            is MemeEditorEvent.SelectTextBox -> selectTextBox(event.id)
-            is MemeEditorEvent.UpdateImagePosition -> updateImagePosition(event.offset, event.size)
+            is MemeEditorAction.UpdateTextBoxPosition -> updateTextBoxPosition(event.id, event.newPos)
+            is MemeEditorAction.DeleteTextBox -> deleteTextBox(event.id)
+            is MemeEditorAction.SelectTextBox -> selectTextBox(event.id)
+            is MemeEditorAction.UpdateImagePosition -> updateImagePosition(event.offset, event.size)
         }
     }
 

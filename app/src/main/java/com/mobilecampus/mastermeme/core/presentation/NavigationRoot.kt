@@ -13,7 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.mobilecampus.mastermeme.core.presentation.design_system.MasterMemeBackground
-import com.mobilecampus.mastermeme.meme.presentation.screens.editor.MemeEditorScreen
+import com.mobilecampus.mastermeme.meme.presentation.screens.editor.MemeEditorScreenRoot
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListScreenRoot
 import kotlinx.serialization.Serializable
 
@@ -49,7 +49,7 @@ fun NavigationRoot(
 
             composable<NavGraph.MemeEditor> {
                 val args = it.toRoute<NavGraph.MemeEditor>()
-               MemeEditorScreen(backgroundImageResId = args.id)
+               MemeEditorScreenRoot(backgroundImageResId = args.id)
             }
         }
     }

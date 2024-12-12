@@ -28,12 +28,11 @@ import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.E
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun MemeEditorScreen(
+fun MemeEditorScreenRoot(
     backgroundImageResId: Int,
     viewModel: MemeEditorViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
-
     val state = viewModel.state
 
     // Observe saveCompleted events
@@ -44,9 +43,23 @@ fun MemeEditorScreen(
         }
     }
 
+    MemeEditorScreen(
+        resId = backgroundImageResId,
+        state = state,
+        onAction = viewModel::onAction
+    )
+}
+
+@Composable
+fun MemeEditorScreen(
+    resId: Int,
+    state: MemeEditorState,
+    onAction: (MemeEditorAction) -> Unit
+) {
+
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = backgroundImageResId),
+            painter = painterResource(id = resId),
             contentDescription = "Meme Background",
             modifier = Modifier
                 .align(Alignment.Center)
@@ -55,7 +68,7 @@ fun MemeEditorScreen(
                 .onGloballyPositioned { coords ->
                     val position = coords.positionInRoot()
                     val size = coords.size
-                    viewModel.onEvent(MemeEditorEvent.UpdateImagePosition(position, size))
+                    onAction(MemeEditorAction.UpdateImagePosition(position, size))
                 },
             contentScale = ContentScale.Fit
         )
@@ -66,11 +79,11 @@ fun MemeEditorScreen(
                 imageOffset = state.imageOffset,
                 imageSize = state.imageSize,
                 onPositionChanged = { newPos ->
-                    viewModel.onEvent(MemeEditorEvent.UpdateTextBoxPosition(textBox.id, newPos))
+                    onAction(MemeEditorAction.UpdateTextBoxPosition(textBox.id, newPos))
                 },
-                onDelete = { viewModel.onEvent(MemeEditorEvent.DeleteTextBox(textBox.id)) },
-                onDoubleClick = { viewModel.onEvent(MemeEditorEvent.StartEditingText(textBox)) },
-                onSelect = { viewModel.onEvent(MemeEditorEvent.SelectTextBox(textBox.id)) },
+                onDelete = { onAction(MemeEditorAction.DeleteTextBox(textBox.id)) },
+                onDoubleClick = { onAction(MemeEditorAction.StartEditingText(textBox)) },
+                onSelect = { onAction(MemeEditorAction.SelectTextBox(textBox.id)) },
                 isSelected = state.currentEditingTextBox?.id == textBox.id
             )
         }
@@ -83,7 +96,7 @@ fun MemeEditorScreen(
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
-                    onClick = { viewModel.onEvent(MemeEditorEvent.ToggleFont) },
+                    onClick = { onAction(MemeEditorAction.ToggleFont) },
                     enabled = state.currentEditingTextBox != null
                 ) {
                     Text(
@@ -93,14 +106,14 @@ fun MemeEditorScreen(
                 }
 
                 Button(
-                    onClick = { viewModel.onEvent(MemeEditorEvent.SetFontSizeNormal) },
+                    onClick = { onAction(MemeEditorAction.SetFontSizeNormal) },
                     enabled = state.currentEditingTextBox != null
                 ) {
                     Text("Normal")
                 }
 
                 Button(
-                    onClick = { viewModel.onEvent(MemeEditorEvent.SetFontSizeLarge) },
+                    onClick = { onAction(MemeEditorAction.SetFontSizeLarge) },
                     enabled = state.currentEditingTextBox != null
                 ) {
                     Text("Large")
@@ -108,10 +121,10 @@ fun MemeEditorScreen(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { viewModel.onEvent(MemeEditorEvent.AddTextBox) }) {
+                Button(onClick = { onAction(MemeEditorAction.AddTextBox) }) {
                     Text("Add Text Box")
                 }
-                Button(onClick = { viewModel.onEvent(MemeEditorEvent.SaveMeme) }) {
+                Button(onClick = { onAction(MemeEditorAction.SaveMeme) }) {
                     Text("Save Meme")
                 }
             }
@@ -120,8 +133,8 @@ fun MemeEditorScreen(
         if (state.showEditDialog && state.currentEditingTextBox != null) {
             EditTextDialog(
                 initialText = state.currentEditingTextBox.text,
-                onDismiss = { viewModel.onEvent(MemeEditorEvent.CancelEditing) },
-                onConfirm = { newText -> viewModel.onEvent(MemeEditorEvent.ConfirmTextChange(newText)) }
+                onDismiss = { onAction(MemeEditorAction.CancelEditing) },
+                onConfirm = { newText -> onAction(MemeEditorAction.ConfirmTextChange(newText)) }
             )
         }
     }
