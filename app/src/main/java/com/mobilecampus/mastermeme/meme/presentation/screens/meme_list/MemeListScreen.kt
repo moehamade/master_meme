@@ -114,7 +114,7 @@ fun MemeListScreen(
 
             is MemeListState.Error -> TODO()
             is MemeListState.Loaded -> MemeGrid(
-                memes = state.memes,
+              onMemeSelected = {},
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
@@ -127,46 +127,37 @@ fun MemeListScreen(
                     .wrapContentSize()
             )
         }
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Main content
-            EmptyMemeListState(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            )
 
-            // Bottom sheet
-            if (showBottomSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = { showBottomSheet = false },
-                    sheetState = sheetState
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = sheetState
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.meme_list_choose_meme),
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                textAlign = TextAlign.Center
-                            )
+                    Text(
+                        text = stringResource(R.string.meme_list_choose_meme),
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            textAlign = TextAlign.Center
                         )
-                        Text(
-                            text = stringResource(R.string.meme_list_choose_meme_description),
-                            modifier = Modifier.padding(vertical = 32.dp),
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                textAlign = TextAlign.Center
-                            )
+                    )
+                    Text(
+                        text = stringResource(R.string.meme_list_choose_meme_description),
+                        modifier = Modifier.padding(vertical = 32.dp),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            textAlign = TextAlign.Center
                         )
+                    )
 
-                        MemeGrid(
-                            onMemeSelected = { memeId ->
-                                onAction(MemeListAction.MemeClickAction(memeId.toString()))
-                                showBottomSheet = false
-                            }
-                        )
-                    }
+                    MemeGrid(
+                        onMemeSelected = { memeId ->
+                            onAction(MemeListAction.MemeClickAction(memeId.toString()))
+                            showBottomSheet = false
+                        }
+                    )
                 }
             }
         }

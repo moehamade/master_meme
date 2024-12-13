@@ -22,7 +22,8 @@ import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 
 @Composable
 fun MemeGrid(
-    onMemeSelected: (Int) -> Unit
+    onMemeSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
