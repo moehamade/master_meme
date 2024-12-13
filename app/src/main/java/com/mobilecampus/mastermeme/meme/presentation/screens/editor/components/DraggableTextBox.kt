@@ -110,8 +110,6 @@ fun DraggableTextBox(
             OutlinedText(
                 text = textBox.text,
                 style = textBox.style,
-                color = Color.White,
-                outlineColor = Color.Black,
                 outlineWidth = with(density) { 4.dp.toPx() },
                 paddingHorizontal = 4.dp,
                 paddingVertical = 0.dp

@@ -16,14 +16,13 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
+import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 
 @Composable
 fun OutlinedText(
     text: String,
     style: MemeTextStyle,
-    color: Color,
-    outlineColor: Color,
     outlineWidth: Float,
     paddingHorizontal: Dp,
     paddingVertical: Dp,
@@ -73,13 +72,33 @@ fun OutlinedText(
 
         // Outline
         paint.style = Paint.Style.STROKE
-        paint.color = outlineColor.toArgb()
+        paint.color = memeTextOutlineColor(style.color).toArgb()
         paint.strokeWidth = outlineWidth
         drawContext.canvas.nativeCanvas.drawText(text, x, y, paint)
 
         // Fill
         paint.style = Paint.Style.FILL
-        paint.color = color.toArgb()
+        paint.color = memeTextColor(style.color).toArgb()
         drawContext.canvas.nativeCanvas.drawText(text, x, y, paint)
+    }
+}
+
+// map the enum of color choices to actual colors
+private fun memeTextColor(memeTextColor: MemeTextColor): Color {
+    return when (memeTextColor) {
+        MemeTextColor.WHITE -> Color.White
+        MemeTextColor.RED -> Color.Red
+        MemeTextColor.GREEN -> Color.Green
+        MemeTextColor.BLUE -> Color.Blue
+    }
+}
+
+// what outline we use for each color, (for example for white color, we have black outline)
+private fun memeTextOutlineColor(memeTextColor: MemeTextColor): Color {
+    return when (memeTextColor) {
+        MemeTextColor.WHITE -> Color.Black
+        MemeTextColor.RED -> Color.Black
+        MemeTextColor.GREEN -> Color.Black
+        MemeTextColor.BLUE -> Color.White
     }
 }

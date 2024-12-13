@@ -2,5 +2,6 @@ package com.mobilecampus.mastermeme.meme.domain.model.editor
 
 data class MemeTextStyle(
     val font: MemeFont = MemeFont.IMPACT,
-    val fontSize: Float = 36f
+    val fontSize: Float = 36f,
+    val color: MemeTextColor = MemeTextColor.WHITE
 )

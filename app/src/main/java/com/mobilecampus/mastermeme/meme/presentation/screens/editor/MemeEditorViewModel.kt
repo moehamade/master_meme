@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
+import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.domain.use_case.SaveMemeUseCase
@@ -28,8 +29,8 @@ data class MemeEditorState(
 sealed class MemeEditorAction {
     data object AddTextBox : MemeEditorAction()
     data object ToggleFont : MemeEditorAction()
-    data object SetFontSizeNormal : MemeEditorAction()
-    data object SetFontSizeLarge : MemeEditorAction()
+    data class UpdateTextColor(val color: MemeTextColor): MemeEditorAction()
+    data class UpdateFontSize(val newFontSize: Float): MemeEditorAction()
     data class SaveMeme(@DrawableRes val resId: Int) : MemeEditorAction()
 
     data class StartEditingText(val textBox: TextBox) : MemeEditorAction()
@@ -61,10 +62,10 @@ class MemeEditorViewModel(
 
     fun onAction(event: MemeEditorAction) {
         when (event) {
-            MemeEditorAction.AddTextBox -> addTextBox()
-            MemeEditorAction.ToggleFont -> toggleFont()
-            MemeEditorAction.SetFontSizeNormal -> setFontSize(36f)
-            MemeEditorAction.SetFontSizeLarge -> setFontSize(48f)
+            is MemeEditorAction.AddTextBox -> addTextBox()
+            is MemeEditorAction.ToggleFont -> toggleFont()
+            is MemeEditorAction.UpdateFontSize -> setFontSize(event.newFontSize)
+            is MemeEditorAction.UpdateTextColor -> setTextColor(event.color)
             is MemeEditorAction.SaveMeme -> saveMeme(event.resId)
 
             is MemeEditorAction.StartEditingText -> startEditing(event.textBox)
@@ -120,6 +121,17 @@ class MemeEditorViewModel(
         if (index != -1) {
             val updated = state.textBoxes.toMutableList().apply {
                 this[index] = this[index].copy(style = this[index].style.copy(fontSize = newSize))
+            }
+            _state = _state.copy(textBoxes = updated)
+        }
+    }
+
+    private fun setTextColor(color: MemeTextColor) {
+        val selected = state.currentEditingTextBox ?: return
+        val index = state.textBoxes.indexOfFirst { it.id == selected.id }
+        if (index != -1) {
+            val updated = state.textBoxes.toMutableList().apply {
+                this[index] = this[index].copy(style = this[index].style.copy(color = color))
             }
             _state = _state.copy(textBoxes = updated)
         }

@@ -14,6 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -24,6 +29,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.mobilecampus.mastermeme.core.presentation.design_system.ObserveAsEvents
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
+import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
+import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.AppSlider
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DraggableTextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.EditTextDialog
 import org.koin.androidx.compose.koinViewModel
@@ -107,29 +114,46 @@ fun MemeEditorScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = { onAction(MemeEditorAction.ToggleFont) },
-                    enabled = state.currentEditingTextBox != null
-                ) {
-                    Text(
-                        if (state.currentEditingTextBox?.style?.font == MemeFont.IMPACT) "Impact"
-                        else "System"
-                    )
+            // keep track of previously selected textbox, so we reset AppSlider positions
+            var lastIdSelected by remember { mutableIntStateOf(state.currentEditingTextBox?.id ?: -1) }
+            state.currentEditingTextBox?.let {
+                var fontSize by remember { mutableFloatStateOf(it.style.fontSize) }
+
+                if (lastIdSelected != it.id) {
+                    lastIdSelected = it.id
+                    fontSize = it.style.fontSize
                 }
 
-                Button(
-                    onClick = { onAction(MemeEditorAction.SetFontSizeNormal) },
-                    enabled = state.currentEditingTextBox != null
-                ) {
-                    Text("Normal")
-                }
+                AppSlider(
+                    value = fontSize,
+                    onValueChange = { newFontSize ->
+                        fontSize = newFontSize
+                        onAction(MemeEditorAction.UpdateFontSize(newFontSize))
+                    },
+                    valueRange = 24f..48f
+                )
 
-                Button(
-                    onClick = { onAction(MemeEditorAction.SetFontSizeLarge) },
-                    enabled = state.currentEditingTextBox != null
-                ) {
-                    Text("Large")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { onAction(MemeEditorAction.ToggleFont) }
+                    ) {
+                        Text(
+                            if (state.currentEditingTextBox.style.font == MemeFont.IMPACT) "Impact"
+                            else "System"
+                        )
+                    }
+
+                    Button(
+                        onClick = { onAction(MemeEditorAction.UpdateTextColor(MemeTextColor.WHITE)) }
+                    ) {
+                        Text("White")
+                    }
+
+                    Button(
+                        onClick = { onAction(MemeEditorAction.UpdateTextColor(MemeTextColor.RED)) }
+                    ) {
+                        Text("Red")
+                    }
                 }
             }
 
