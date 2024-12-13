@@ -18,32 +18,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 
 @Composable
 fun MemeGrid(
     onMemeSelected: (Int) -> Unit
 ) {
-    // Generate a list of resource IDs for all memes
-    val context = LocalContext.current
-    val memeIds = (1..49).map { index ->
-        // Convert number to padded string (01, 02, etc.)
-        val paddedIndex = index.toString().padStart(2, '0')
-        // Get resource ID dynamically
-        context.resources.getIdentifier(
-            "meme_template_$paddedIndex",
-            "drawable",
-            context.packageName
-        )
-    }
-
-    // The grid now handles the spacing between items
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(0.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(memeIds) { memeId ->
+        items(AppIcons.meme.size) { index ->
+            val memeId = AppIcons.meme[index]
             MemeCard(
                 memeId = memeId,
                 onClick = { onMemeSelected(memeId) }
