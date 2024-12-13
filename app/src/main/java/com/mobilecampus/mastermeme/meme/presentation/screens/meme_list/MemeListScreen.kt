@@ -113,12 +113,13 @@ fun MemeListScreen(
             )
 
             is MemeListState.Error -> TODO()
-            is MemeListState.Loaded -> MemeGrid(
-              onMemeSelected = {},
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            )
+            is MemeListState.Loaded -> TODO()
+//                MemeGrid(
+//              onMemeSelected = {},
+//                modifier = Modifier
+//                    .padding(paddingValues)
+//                    .fillMaxSize()
+//            )
 
             MemeListState.Loading -> CircularProgressIndicator(
                 modifier = Modifier
@@ -153,6 +154,7 @@ fun MemeListScreen(
                     )
 
                     MemeGrid(
+                        memes = AppIcons.meme,
                         onMemeSelected = { memeId ->
                             onAction(MemeListAction.MemeClickAction(memeId.toString()))
                             showBottomSheet = false
