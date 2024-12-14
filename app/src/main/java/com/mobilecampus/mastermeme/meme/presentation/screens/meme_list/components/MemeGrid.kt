@@ -1,5 +1,9 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components
 
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
@@ -12,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
@@ -29,9 +34,129 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
+
+
+// Extension function for template grids
+fun LazyGridScope.templateItems(
+    templates: List<MemeItem.Template>,
+    onTemplateClick: (MemeItem.Template) -> Unit,
+    itemSpacing: Dp = 8.dp
+) {
+    items(
+        items = templates,
+        // Using resourceId as key since it's guaranteed to be non-null
+        key = { it.resourceId }
+    ) { template ->
+        TemplateCard(
+            template = template,
+            onClick = onTemplateClick,
+            modifier = Modifier.padding(itemSpacing)
+        )
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
+fun LazyGridScope.userMemeItems(
+    memes: List<MemeItem.ImageMeme>,
+    onMemeClick: (MemeItem.ImageMeme) -> Unit,
+    modifier: Modifier = Modifier,
+    onFavoriteToggle: (MemeItem.ImageMeme) -> Unit,
+    isSelectionMode: Boolean = false,
+    selectedMemes: Set<Int> = emptySet(),
+    onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit,
+    itemSpacing: Dp = 8.dp
+) {
+    items(
+        items = memes,
+        key = { meme -> "${meme.createdAt}_${meme.isFavorite}" }
+    ) { meme ->
+        Box(
+            modifier = modifier
+                .padding(itemSpacing)
+                .animateItem(
+                    fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                    placementSpec = spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        visibilityThreshold = IntOffset.VisibilityThreshold
+                    ),
+                    fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            ImageMemeCard(
+                meme = meme,
+                onClick = onMemeClick,
+                onFavoriteToggle = onFavoriteToggle,
+                isSelectionMode = isSelectionMode,
+                isSelected = meme.id?.let { selectedMemes.contains(it) } ?: false,
+                onSelectionToggle = onSelectionToggle
+            )
+        }
+    }
+}
+
+@Composable
+fun TemplateGrid(
+    templates: List<MemeItem.Template>,
+    onTemplateClick: (MemeItem.Template) -> Unit,
+    modifier: Modifier = Modifier,
+    columns: Int = 2,
+    contentPadding: PaddingValues = PaddingValues(16.dp),
+    itemSpacing: Dp = 8.dp
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        modifier = modifier,
+        contentPadding = contentPadding,
+        horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+        verticalArrangement = Arrangement.spacedBy(itemSpacing)
+    ) {
+        templateItems(
+            templates = templates,
+            onTemplateClick = onTemplateClick,
+            itemSpacing = itemSpacing
+        )
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+fun UserMemeGrid(
+    memes: List<MemeItem.ImageMeme>,
+    onMemeTap: (MemeItem.ImageMeme) -> Unit,
+    onFavoriteToggle: (MemeItem.ImageMeme) -> Unit,
+    modifier: Modifier = Modifier,
+    columns: Int = 2,
+    contentPadding: PaddingValues = PaddingValues(16.dp),
+    itemSpacing: Dp = 8.dp,
+    isSelectionMode: Boolean = false,
+    selectedMemes: Set<Int> = emptySet(),
+    onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        modifier = modifier,
+        contentPadding = contentPadding,
+        horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+        verticalArrangement = Arrangement.spacedBy(itemSpacing)
+    ) {
+        userMemeItems(
+            memes = memes,
+            onMemeClick = onMemeTap,
+            onFavoriteToggle = onFavoriteToggle,
+            isSelectionMode = isSelectionMode,
+            selectedMemes = selectedMemes,
+            onSelectionToggle = onSelectionToggle,
+            itemSpacing = itemSpacing
+        )
+    }
+}
+
+
 
 // Base card component that handles common layout and behavior
 @OptIn(ExperimentalFoundationApi::class)
@@ -151,43 +276,6 @@ fun ImageMemeCard(
                     tint = if (meme.isFavorite) Color.Red else Color.White
                 )
             }
-        }
-    }
-}
-
-// Grid component that can display either type of meme
-@Composable
-fun <T : MemeItem> MemeGrid(
-    items: List<T>,
-    onItemClick: (T) -> Unit,
-    modifier: Modifier = Modifier,
-    columns: Int = 2,
-    contentPadding: PaddingValues = PaddingValues(16.dp),
-    itemSpacing: Dp = 8.dp,
-    extraItemContent: (@Composable (T) -> Unit)? = null
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        modifier = modifier,
-        contentPadding = contentPadding,
-        horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-        verticalArrangement = Arrangement.spacedBy(itemSpacing)
-    ) {
-        items(
-            items = items,
-            key = { it.id }
-        ) { item ->
-            when (item) {
-                is MemeItem.Template -> TemplateCard(
-                    template = item,
-                    onClick = { onItemClick(item) }
-                )
-                is MemeItem.ImageMeme -> ImageMemeCard(
-                    meme = item,
-                    onClick = {  }
-                )
-            }
-            extraItemContent?.invoke(item)
         }
     }
 }

@@ -63,7 +63,7 @@ class MemeListViewModel(
             when (action) {
                 is MemeListAction.MemeClickAction -> {
                     eventChannel.send(
-                        MemeListScreenEvent.OnGotoEditorScreen(action.id)
+                        MemeListScreenEvent.OnGotoEditorScreen(action.id.toString())
                     )
                 }
 
@@ -72,6 +72,9 @@ class MemeListViewModel(
                     eventChannel.send(
                         MemeListScreenEvent.OnGotoEditorScreen(action.templateId)
                     )
+                }
+                is MemeListAction.ToggleFavoriteAction -> {
+                    toggleFavoriteUseCase(action.meme.id!!)
                 }
             }
         }
@@ -101,7 +104,8 @@ class MemeListViewModel(
 
 // Add a new action for template selection
 sealed interface MemeListAction {
-    data class MemeClickAction(val id: String) : MemeListAction
+    data class ToggleFavoriteAction(val meme: MemeItem.ImageMeme) : MemeListAction
+    data class MemeClickAction(val id: Int) : MemeListAction
     data class TemplateClickAction(val templateId: String) : MemeListAction
 }
 
