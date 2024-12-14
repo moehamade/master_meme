@@ -2,14 +2,12 @@ package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,8 +35,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.core.presentation.design_system.ObserveAsEvents
+import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
-import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import org.koin.androidx.compose.koinViewModel
@@ -49,6 +47,7 @@ fun MemeListScreenRoot(
 ) {
     val viewModel = koinViewModel<MemeListViewModel>()
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
+    val templates = viewModel.templates.collectAsStateWithLifecycle().value
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
@@ -63,7 +62,8 @@ fun MemeListScreenRoot(
 
     MemeListScreen(
         state = state,
-        onAction = viewModel::onAction
+        onAction = viewModel::onAction,
+        templates = templates
     )
 }
 
@@ -71,16 +71,14 @@ fun MemeListScreenRoot(
 @Composable
 fun MemeListScreen(
     state: MemeListState,
-    onAction: (MemeListAction) -> Unit
+    onAction: (MemeListAction) -> Unit,
+    templates : List<MemeItem.Template>
 ) {
     var isOpen by remember { mutableStateOf(false) }
     var selectedSortOption by remember { mutableStateOf(SortOption.FAVORITES_FIRST) }
     var selectedItemsCount by remember { mutableIntStateOf(0) }
-
     var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = false
-    )
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
     Scaffold(
         topBar = {
@@ -111,16 +109,19 @@ fun MemeListScreen(
                     .padding(paddingValues)
                     .fillMaxSize()
             )
-
             is MemeListState.Error -> TODO()
-            is MemeListState.Loaded -> TODO()
-//                MemeGrid(
-//              onMemeSelected = {},
-//                modifier = Modifier
-//                    .padding(paddingValues)
-//                    .fillMaxSize()
-//            )
-
+            is MemeListState.Loaded -> {
+                // Using our new MemeGrid component for the created memes
+                MemeGrid(
+                    items = state.memes,
+                    onItemClick = { meme ->
+                        onAction(MemeListAction.MemeClickAction(meme.id))
+                    },
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize()
+                )
+            }
             MemeListState.Loading -> CircularProgressIndicator(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -134,35 +135,48 @@ fun MemeListScreen(
                 onDismissRequest = { showBottomSheet = false },
                 sheetState = sheetState
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.meme_list_choose_meme),
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            textAlign = TextAlign.Center
-                        )
-                    )
-                    Text(
-                        text = stringResource(R.string.meme_list_choose_meme_description),
-                        modifier = Modifier.padding(vertical = 32.dp),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            textAlign = TextAlign.Center
-                        )
-                    )
-
-                    MemeGrid(
-                        memes = AppIcons.meme,
-                        onMemeSelected = { memeId ->
-                            onAction(MemeListAction.MemeClickAction(memeId.toString()))
-                            showBottomSheet = false
-                        }
-                    )
-                }
+                TemplateSelectionContent(
+                    templates = templates ,
+                    onTemplateSelected = { template ->
+                        onAction(MemeListAction.TemplateClickAction(template.resourceId.toString()))
+                        showBottomSheet = false
+                    }
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun TemplateSelectionContent(
+    templates: List<MemeItem.Template>,
+    onTemplateSelected: (MemeItem.Template) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.meme_list_choose_meme),
+            style = MaterialTheme.typography.headlineSmall.copy(
+                textAlign = TextAlign.Center
+            )
+        )
+        Text(
+            text = stringResource(R.string.meme_list_choose_meme_description),
+            modifier = Modifier.padding(vertical = 32.dp),
+            style = MaterialTheme.typography.bodySmall.copy(
+                textAlign = TextAlign.Center
+            )
+        )
+
+        MemeGrid(
+            items = templates,
+            onItemClick = onTemplateSelected,
+            columns = 2,
+            contentPadding = PaddingValues(0.dp)
+        )
     }
 }
 
