@@ -114,16 +114,6 @@ class MemeListViewModel(
         }
     }
 
-    private fun sortMemes(memes: List<MemeItem.ImageMeme>, sortOption: SortOption): List<MemeItem.ImageMeme> {
-        return when (sortOption) {
-            SortOption.FAVORITES_FIRST -> memes.sortedWith(
-                compareByDescending<MemeItem.ImageMeme> { it.isFavorite }
-                    .thenByDescending { it.createdAt }
-            )
-            SortOption.NEWEST_FIRST -> memes.sortedByDescending { it.createdAt }
-        }
-    }
-
     private fun loadTemplates() {
         viewModelScope.launch {
             try {

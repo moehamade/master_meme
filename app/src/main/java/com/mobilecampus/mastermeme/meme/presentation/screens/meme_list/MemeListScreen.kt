@@ -175,7 +175,7 @@ fun MemeListScreen(
                 onDismissRequest = {
                     onAction(MemeListAction.SetBottomSheetVisibility(false))
                 },
-                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
             ) {
                 TemplateSelectionContent(
                     templates = state.filteredTemplates,
