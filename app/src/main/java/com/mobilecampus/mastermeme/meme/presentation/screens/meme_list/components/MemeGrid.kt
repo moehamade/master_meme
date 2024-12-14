@@ -62,34 +62,67 @@ fun LazyGridScope.templateItems(
     }
 }
 
-// Extension function for user-created meme grids
+@OptIn(ExperimentalAnimationApi::class)
 fun LazyGridScope.userMemeItems(
     memes: List<MemeItem.ImageMeme>,
     onMemeClick: (MemeItem.ImageMeme) -> Unit,
     modifier: Modifier = Modifier,
     onFavoriteToggle: (MemeItem.ImageMeme) -> Unit,
     isSelectionMode: Boolean = false,
-    selectedMemes: Set<Int> = emptySet(), // Changed from Set<String> to Set<Int>
+    selectedMemes: Set<Int> = emptySet(),
     onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit,
     itemSpacing: Dp = 8.dp
 ) {
     items(
         items = memes,
-        // Using createdAt as key since id might be null
-        key = { it.createdAt }
+        // We combine createdAt and isFavorite state to ensure proper recomposition
+        key = { meme -> "${meme.createdAt}_${meme.isFavorite}" }
     ) { meme ->
-        ImageMemeCard(
-            meme = meme,
-            onClick = onMemeClick,
-            modifier = modifier.padding(itemSpacing),
-            onFavoriteToggle = onFavoriteToggle,
-            isSelectionMode = isSelectionMode,
-            // Only check selection if id is not null
-            isSelected = meme.id?.let { selectedMemes.contains(it) } ?: false,
-            onSelectionToggle = onSelectionToggle
-        )
+        // AnimatedContent handles the visual transition when the item changes
+        AnimatedContent(
+            targetState = meme,
+            transitionSpec = {
+                // Custom transition specification for smooth animations
+                val duration = 300
+                val enterTransition = fadeIn(
+                    animationSpec = tween(
+                        durationMillis = duration,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + scaleIn(
+                    initialScale = 0.95f,
+                    animationSpec = tween(duration)
+                )
+
+                val exitTransition = fadeOut(
+                    animationSpec = tween(
+                        durationMillis = duration / 2,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+
+                enterTransition.togetherWith(exitTransition)
+            },
+            // Content alignment helps maintain position during animation
+            contentAlignment = Alignment.Center
+        ) { targetMeme ->
+            Box(
+                modifier = modifier.padding(itemSpacing),
+                contentAlignment = Alignment.Center
+            ) {
+                ImageMemeCard(
+                    meme = targetMeme,
+                    onClick = onMemeClick,
+                    onFavoriteToggle = onFavoriteToggle,
+                    isSelectionMode = isSelectionMode,
+                    isSelected = targetMeme.id?.let { selectedMemes.contains(it) } ?: false,
+                    onSelectionToggle = onSelectionToggle
+                )
+            }
+        }
     }
 }
+
 
 @Composable
 fun TemplateGrid(
@@ -136,37 +169,18 @@ fun UserMemeGrid(
         horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         verticalArrangement = Arrangement.spacedBy(itemSpacing)
     ) {
-        items(
-            items = memes,
-            key = { it.createdAt }
-        ) { meme ->
-            AnimatedContent(
-                targetState = meme,
-                transitionSpec = {
-                    (fadeIn(
-                        animationSpec = tween(
-                            220,
-                            delayMillis = 90
-                        )
-                    ) + scaleIn(
-                        initialScale = 0.92f,
-                        animationSpec = tween(220, delayMillis = 90)
-                    )).togetherWith(fadeOut(animationSpec = tween(90)))
-                }
-            ) { targetMeme ->
-                ImageMemeCard(
-                    meme = targetMeme,
-                    onClick = onMemeTap,
-                    modifier = Modifier.padding(itemSpacing),
-                    onFavoriteToggle = onFavoriteToggle,
-                    isSelectionMode = isSelectionMode,
-                    isSelected = targetMeme.id?.let { selectedMemes.contains(it) } ?: false,
-                    onSelectionToggle = onSelectionToggle
-                )
-            }
-        }
+        userMemeItems(
+            memes = memes,
+            onMemeClick = onMemeTap,
+            onFavoriteToggle = onFavoriteToggle,
+            isSelectionMode = isSelectionMode,
+            selectedMemes = selectedMemes,
+            onSelectionToggle = onSelectionToggle,
+            itemSpacing = itemSpacing
+        )
     }
 }
+
 
 
 // Base card component that handles common layout and behavior
