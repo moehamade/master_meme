@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection.Companion.Ltr
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mobilecampus.mastermeme.R
@@ -143,7 +146,11 @@ fun MemeListScreen(
                             onAction(MemeListAction.ToggleFavorite(meme))
                         },
                         modifier = Modifier
-                            .padding(paddingValues)
+                            .padding(
+                                start = paddingValues.calculateLeftPadding(LayoutDirection.Ltr),
+                                end = paddingValues.calculateRightPadding(LayoutDirection.Ltr),
+                                top = paddingValues.calculateTopPadding(),
+                            )
                             .fillMaxSize(),
                         isSelectionMode = state.isSelectionModeActive,
                         selectedMemes = state.selectedMemes,

@@ -36,7 +36,7 @@ fun NavigationRoot(
                 .fillMaxSize()
                 .padding(
                     PaddingValues(
-                        bottom = innerPadding.calculateBottomPadding(),
+//                        bottom = innerPadding.calculateBottomPadding(),
                         start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
                         end = innerPadding.calculateEndPadding(LayoutDirection.Ltr)
                     )
