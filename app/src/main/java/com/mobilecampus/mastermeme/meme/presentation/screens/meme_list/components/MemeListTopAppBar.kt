@@ -28,6 +28,7 @@ fun MemeListTopAppBar(
     isDropdownMenuExpanded: Boolean,
     selectedSortOption: SortOption,
     onDropDownMenuClick: () -> Unit,
+    onCancelSelection: () -> Unit,
     onDropdownMenuDismiss: () -> Unit,
     onDropdownMenuItemClick: (SortOption) -> Unit,
     modifier: Modifier = Modifier
@@ -40,7 +41,7 @@ fun MemeListTopAppBar(
         },
         navigationIcon = {
             if (selectedItemsCount > 0) {
-                IconButton(onClick = onDropdownMenuDismiss) {
+                IconButton(onClick = onCancelSelection) {
                     Icon(Icons.Filled.Close, contentDescription = null)
                 }
             }
