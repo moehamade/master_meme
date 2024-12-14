@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,116 +43,130 @@ import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.component
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.UserMemeGrid
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemeListScreenRoot(
-    onOpenEditorScreen: (resId: Int) -> Unit,
+    onOpenEditorScreen: (id: Int) -> Unit,
 ) {
     val viewModel = koinViewModel<MemeListViewModel>()
-    val state = viewModel.uiState.collectAsStateWithLifecycle().value
-    val templates = viewModel.templates.collectAsStateWithLifecycle().value
+    val state = viewModel.state.collectAsStateWithLifecycle().value
 
-    ObserveAsEvents(viewModel.events) { event ->
-        when (event) {
-            is MemeListScreenEvent.OnGotoEditorScreen -> {
-                event.id.toIntOrNull()?.let {
-                    onOpenEditorScreen(it)
+    // Handle events
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is MemeListScreenEvent.NavigateToEditor -> {
+                    onOpenEditorScreen(event.id)
                 }
-                //println("Goto editor screen with id: ${event.id}")
+                is MemeListScreenEvent.ShowError -> {
+                    // Show error using your preferred method (Snackbar, Toast, etc.)
+                }
             }
         }
     }
 
     MemeListScreen(
         state = state,
-        onAction = viewModel::onAction,
-        templates = templates
+        onAction = viewModel::onAction
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemeListScreen(
-    state: MemeListState,
-    onAction: (MemeListAction) -> Unit,
-    templates : List<MemeItem.Template>
+    state: MemeListScreenState,
+    onAction: (MemeListAction) -> Unit
 ) {
-    var isOpen by remember { mutableStateOf(false) }
-    var selectedSortOption by remember { mutableStateOf(SortOption.FAVORITES_FIRST) }
-    var selectedItemsCount by remember { mutableIntStateOf(0) }
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    var isDropdownMenuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             MemeListTopAppBar(
-                selectedItemsCount = selectedItemsCount,
-                isDropdownMenuExpanded = isOpen,
-                selectedSortOption = selectedSortOption,
-                onDropDownMenuClick = { isOpen = !isOpen },
-                onDropdownMenuDismiss = { isOpen = false },
+                selectedItemsCount = state.selectedMemesCount,
+                isDropdownMenuExpanded = isDropdownMenuExpanded,
+                selectedSortOption = state.sortOption,
+                onDropDownMenuClick = { isDropdownMenuExpanded = true },
+                onDropdownMenuDismiss = { isDropdownMenuExpanded = false },
                 onDropdownMenuItemClick = { option ->
-                    selectedSortOption = option
-                    isOpen = false
+                    onAction(MemeListAction.UpdateSortOption(option))
+                    isDropdownMenuExpanded = false
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showBottomSheet = true },
-                modifier = Modifier.padding(bottom = 16.dp)
-            ) {
-                Icon(AppIcons.add, contentDescription = null, Modifier.size(32.dp), tint = Color.Black)
+            if (!state.isSelectionModeActive) {
+                FloatingActionButton(
+                    onClick = { onAction(MemeListAction.SetBottomSheetVisibility(true)) }
+                ) {
+                    Icon(AppIcons.add, contentDescription = null)
+                }
             }
         }
     ) { paddingValues ->
-        when (state) {
-            MemeListState.Empty -> EmptyMemeListState(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            )
-            is MemeListState.Error -> TODO()
-            is MemeListState.Loaded -> {
-                // Using our new MemeGrid component for the created memes
-                UserMemeGrid(
-                    memes = state.memes,
+        when (state.loadingState) {
+            LoadingState.Loading -> {
+                CircularProgressIndicator(
                     modifier = Modifier
                         .padding(paddingValues)
-                        .fillMaxSize(),
-
-                    onMemeTap = {
-
-                    },
-                    onFavoriteToggle = {
-                        onAction(MemeListAction.ToggleFavoriteAction(it))
-                    },
-                    onSelectionToggle = { meme, isSelected ->
-                        if (isSelected) {
-                            selectedItemsCount++
-                        } else {
-                            selectedItemsCount--
-                        }
-                    }
+                        .fillMaxSize()
+                        .wrapContentSize()
                 )
             }
-            MemeListState.Loading -> CircularProgressIndicator(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .wrapContentSize()
-            )
+            is LoadingState.Error -> {
+                // You can create a custom error state component
+                Text(
+                    text = state.loadingState.message,
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize()
+                        .wrapContentSize()
+                )
+            }
+            LoadingState.Success -> {
+                if (state.isEmpty) {
+                    EmptyMemeListState(
+                        modifier = Modifier
+                            .padding(paddingValues)
+                            .fillMaxSize()
+                    )
+                } else {
+                    UserMemeGrid(
+                        memes = state.sortedMemes,
+                        onMemeTap = { meme ->
+                            if (state.isSelectionModeActive) {
+                                onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
+                            } else {
+                                onAction(MemeListAction.OpenMemeEditor(meme.id!!))
+                            }
+                        },
+                        onFavoriteToggle = { meme ->
+                            onAction(MemeListAction.ToggleFavorite(meme))
+                        },
+                        modifier = Modifier
+                            .padding(paddingValues)
+                            .fillMaxSize(),
+                        isSelectionMode = state.isSelectionModeActive,
+                        selectedMemes = state.selectedMemes,
+                        onSelectionToggle = { meme, isSelected ->
+                            onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
+                        }
+                    )
+                }
+            }
         }
 
-        if (showBottomSheet) {
+        if (state.isBottomSheetVisible) {
             ModalBottomSheet(
-                onDismissRequest = { showBottomSheet = false },
-                sheetState = sheetState
+                onDismissRequest = {
+                    onAction(MemeListAction.SetBottomSheetVisibility(false))
+                },
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             ) {
                 TemplateSelectionContent(
-                    templates = templates ,
+                    templates = state.filteredTemplates,
                     onTemplateSelected = { template ->
-                        onAction(MemeListAction.TemplateClickAction(template.resourceId.toString()))
-                        showBottomSheet = false
+                        onAction(MemeListAction.OpenTemplateEditor(template.resourceId))
+                        onAction(MemeListAction.SetBottomSheetVisibility(false))
                     }
                 )
             }
@@ -159,6 +174,7 @@ fun MemeListScreen(
     }
 }
 
+// Template bottom sheet content
 @Composable
 private fun TemplateSelectionContent(
     templates: List<MemeItem.Template>,
@@ -171,16 +187,15 @@ private fun TemplateSelectionContent(
     ) {
         Text(
             text = stringResource(R.string.meme_list_choose_meme),
-            style = MaterialTheme.typography.headlineSmall.copy(
-                textAlign = TextAlign.Center
-            )
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
         )
         Text(
             text = stringResource(R.string.meme_list_choose_meme_description),
             modifier = Modifier.padding(vertical = 32.dp),
-            style = MaterialTheme.typography.bodySmall.copy(
-                textAlign = TextAlign.Center
-            )
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center
         )
 
         TemplateGrid(
@@ -189,7 +204,6 @@ private fun TemplateSelectionContent(
             columns = 2,
             contentPadding = PaddingValues(0.dp)
         )
-
     }
 }
 

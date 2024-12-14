@@ -157,7 +157,6 @@ fun UserMemeGrid(
 }
 
 
-
 // Base card component that handles common layout and behavior
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
