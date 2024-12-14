@@ -1,5 +1,6 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -123,7 +124,7 @@ fun MemeListScreen(
 
                     },
                     onFavoriteToggle = {
-
+                        onAction(MemeListAction.ToggleFavoriteAction(it))
                     },
                     onSelectionToggle = { meme, isSelected ->
                         if (isSelected) {
