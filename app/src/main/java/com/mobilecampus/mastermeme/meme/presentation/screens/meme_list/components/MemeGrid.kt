@@ -1,13 +1,9 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
@@ -38,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
@@ -62,7 +59,7 @@ fun LazyGridScope.templateItems(
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 fun LazyGridScope.userMemeItems(
     memes: List<MemeItem.ImageMeme>,
     onMemeClick: (MemeItem.ImageMeme) -> Unit,
@@ -75,54 +72,32 @@ fun LazyGridScope.userMemeItems(
 ) {
     items(
         items = memes,
-        // We combine createdAt and isFavorite state to ensure proper recomposition
         key = { meme -> "${meme.createdAt}_${meme.isFavorite}" }
     ) { meme ->
-        // AnimatedContent handles the visual transition when the item changes
-        AnimatedContent(
-            targetState = meme,
-            transitionSpec = {
-                // Custom transition specification for smooth animations
-                val duration = 300
-                val enterTransition = fadeIn(
-                    animationSpec = tween(
-                        durationMillis = duration,
-                        easing = FastOutSlowInEasing
-                    )
-                ) + scaleIn(
-                    initialScale = 0.95f,
-                    animationSpec = tween(duration)
-                )
-
-                val exitTransition = fadeOut(
-                    animationSpec = tween(
-                        durationMillis = duration / 2,
-                        easing = FastOutSlowInEasing
-                    )
-                )
-
-                enterTransition.togetherWith(exitTransition)
-            },
-            // Content alignment helps maintain position during animation
+        Box(
+            modifier = modifier
+                .padding(itemSpacing)
+                .animateItem(
+                    fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                    placementSpec = spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        visibilityThreshold = IntOffset.VisibilityThreshold
+                    ),
+                    fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                ),
             contentAlignment = Alignment.Center
-        ) { targetMeme ->
-            Box(
-                modifier = modifier.padding(itemSpacing),
-                contentAlignment = Alignment.Center
-            ) {
-                ImageMemeCard(
-                    meme = targetMeme,
-                    onClick = onMemeClick,
-                    onFavoriteToggle = onFavoriteToggle,
-                    isSelectionMode = isSelectionMode,
-                    isSelected = targetMeme.id?.let { selectedMemes.contains(it) } ?: false,
-                    onSelectionToggle = onSelectionToggle
-                )
-            }
+        ) {
+            ImageMemeCard(
+                meme = meme,
+                onClick = onMemeClick,
+                onFavoriteToggle = onFavoriteToggle,
+                isSelectionMode = isSelectionMode,
+                isSelected = meme.id?.let { selectedMemes.contains(it) } ?: false,
+                onSelectionToggle = onSelectionToggle
+            )
         }
     }
 }
-
 
 @Composable
 fun TemplateGrid(
