@@ -10,19 +10,8 @@ import kotlinx.coroutines.flow.map
 class GetMemesUseCaseImpl(
     private val dataSource: MemeDataSource
 ) : GetMemesUseCase {
-    override operator fun invoke(sortOption: SortOption): Flow<List<MemeItem.ImageMeme>> {
-        return dataSource.getMemes().map { memes ->
-            when (sortOption) {
-                SortOption.FAVORITES_FIRST -> {
-                    memes.sortedWith(
-                        compareByDescending<MemeItem.ImageMeme> { it.isFavorite }
-                            .thenByDescending { it.createdAt }
-                    )
-                }
-                SortOption.NEWEST_FIRST -> {
-                    memes.sortedByDescending { it.createdAt }
-                }
-            }
-        }
+    // Notice we removed the sortOption parameter since sorting is now handled at collection time
+    override operator fun invoke(): Flow<List<MemeItem.ImageMeme>> {
+        return dataSource.getMemes()
     }
 }

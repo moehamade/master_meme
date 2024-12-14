@@ -9,12 +9,11 @@ import com.mobilecampus.mastermeme.meme.domain.use_case.GetMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,16 +34,6 @@ data class MemeListScreenState(
     // Helper properties for UI logic
     val selectedMemesCount: Int get() = selectedMemes.size
     val isEmpty: Boolean get() = loadingState == LoadingState.Success && memes.isEmpty()
-
-    // Get sorted memes based on current sort option
-    val sortedMemes: List<MemeItem.ImageMeme>
-        get() = when (sortOption) {
-            SortOption.FAVORITES_FIRST -> memes.sortedWith(
-                compareByDescending<MemeItem.ImageMeme> { it.isFavorite }
-                    .thenByDescending { it.createdAt }
-            )
-            SortOption.NEWEST_FIRST -> memes.sortedByDescending { it.createdAt }
-        }
 }
 
 sealed class LoadingState {
@@ -78,7 +67,6 @@ sealed interface MemeListAction {
     data class UpdateSortOption(val option: SortOption) : MemeListAction
 }
 
-// Events.kt
 // Contains all events that can be emitted by the ViewModel
 sealed interface MemeListScreenEvent {
     data class NavigateToEditor(val id: Int) : MemeListScreenEvent
@@ -92,38 +80,45 @@ class MemeListViewModel(
     private val deleteMemesUseCase: DeleteMemeUseCase,
     private val getTemplatesUseCase: GetTemplatesUseCase
 ) : ViewModel() {
+
     private val _state = MutableStateFlow(MemeListScreenState())
-    val state = _state.asStateFlow()
+    val state = _state
+        .onStart {
+            loadMemes()
+            loadTemplates()
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = MemeListScreenState()
+        )
 
     private val eventChannel = Channel<MemeListScreenEvent>(Channel.BUFFERED)
     val events = eventChannel.receiveAsFlow()
 
-    init {
-        loadInitialData()
-    }
-
-    private fun loadInitialData() {
-        loadMemes()
-        loadTemplates()
-    }
-
     private fun loadMemes() {
         viewModelScope.launch {
-            try {
-                _state.update { it.copy(loadingState = LoadingState.Loading) }
-                getMemesUseCase(_state.value.sortOption).collect { memes ->
+            _state.update{it.copy(loadingState = LoadingState.Loading)}
+            getMemesUseCase()
+                .collectLatest { memes ->
+                    val sortedMemes = sortMemes(memes, _state.value.sortOption)
                     _state.update { currentState ->
                         currentState.copy(
-                            memes = memes,
+                            memes = sortedMemes,
                             loadingState = LoadingState.Success
                         )
                     }
                 }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(loadingState = LoadingState.Error("Failed to load memes"))
-                }
-            }
+        }
+    }
+
+    private fun sortMemes(memes: List<MemeItem.ImageMeme>, sortOption: SortOption): List<MemeItem.ImageMeme> {
+        return when (sortOption) {
+            SortOption.FAVORITES_FIRST -> memes.sortedWith(
+                compareByDescending<MemeItem.ImageMeme> { it.isFavorite }
+                    .thenByDescending { it.createdAt }
+            )
+            SortOption.NEWEST_FIRST -> memes.sortedByDescending { it.createdAt }
         }
     }
 
@@ -244,7 +239,12 @@ class MemeListViewModel(
     }
 
     private fun updateSortOption(option: SortOption) {
-        _state.update { it.copy(sortOption = option) }
-        loadMemes() // Reload memes with new sort option
+        _state.update { currentState ->
+            val sortedMemes = sortMemes(currentState.memes, option)
+            currentState.copy(
+                sortOption = option,
+                memes = sortedMemes
+            )
+        }
     }
 }

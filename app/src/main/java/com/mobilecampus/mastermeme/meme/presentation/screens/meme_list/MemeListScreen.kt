@@ -131,7 +131,7 @@ fun MemeListScreen(
                     )
                 } else {
                     UserMemeGrid(
-                        memes = state.sortedMemes,
+                        memes = state.memes,
                         onMemeTap = { meme ->
                             if (state.isSelectionModeActive) {
                                 onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
