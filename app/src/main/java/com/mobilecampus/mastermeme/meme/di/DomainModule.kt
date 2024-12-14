@@ -17,5 +17,5 @@ val domainModule = module {
     factory<ToggleFavoriteUseCase> { ToggleFavoriteUseCaseImpl(get()) }
     factory<DeleteMemeUseCase> { DeleteMemeUseCaseImpl(get()) }
     factory<GetTemplatesUseCase> { GetTemplatesUseCaseImpl(get()) }
-    factory<SaveMemeUseCase> { SaveMemeUseCaseImpl(get()) }
+    factory<SaveMemeUseCase> { SaveMemeUseCaseImpl(get(),get()) }
 }
