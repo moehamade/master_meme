@@ -50,7 +50,9 @@ fun NavigationRoot(
 
             composable<NavGraph.MemeEditor> {
                 val args = it.toRoute<NavGraph.MemeEditor>()
-               MemeEditorScreenRoot(backgroundImageResId = args.resId)
+               MemeEditorScreenRoot(backgroundImageResId = args.resId, onNavigateBack = {
+                   navController.navigateUp()
+               })
             }
         }
     }

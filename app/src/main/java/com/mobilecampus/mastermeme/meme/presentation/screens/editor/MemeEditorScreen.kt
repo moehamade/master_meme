@@ -27,7 +27,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.mobilecampus.mastermeme.core.presentation.design_system.ObserveAsEvents
+import com.mobilecampus.mastermeme.core.presentation.util.ObserveAsEvents
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.AppSlider
@@ -38,6 +38,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun MemeEditorScreenRoot(
     @DrawableRes backgroundImageResId: Int,
+    onNavigateBack : () -> Unit,
     viewModel: MemeEditorViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
@@ -55,6 +56,7 @@ fun MemeEditorScreenRoot(
                     // do something here, or better do something back in the viewmodel
                     // so that you associate the local image path with room :)
                     // kaboom
+                    onNavigateBack()
                 }
 
                 val message = if (success) "Meme saved successfully!" else "Failed to save meme!"
