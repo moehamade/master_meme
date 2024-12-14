@@ -80,6 +80,7 @@ class MemeListViewModel(
     private val deleteMemesUseCase: DeleteMemeUseCase,
     private val getTemplatesUseCase: GetTemplatesUseCase
 ) : ViewModel() {
+    private val sortOptionFlow = MutableStateFlow(SortOption.FAVORITES_FIRST)
 
     private val _state = MutableStateFlow(MemeListScreenState())
     val state = _state
@@ -98,10 +99,11 @@ class MemeListViewModel(
 
     private fun loadMemes() {
         viewModelScope.launch {
-            _state.update{it.copy(loadingState = LoadingState.Loading)}
-            getMemesUseCase()
-                .collectLatest { memes ->
-                    val sortedMemes = sortMemes(memes, _state.value.sortOption)
+            _state.update { it.copy(loadingState = LoadingState.Loading) }
+
+            // Pass the sort option flow to the use case
+            getMemesUseCase(sortOptionFlow)
+                .collectLatest { sortedMemes ->
                     _state.update { currentState ->
                         currentState.copy(
                             memes = sortedMemes,
@@ -239,12 +241,9 @@ class MemeListViewModel(
     }
 
     private fun updateSortOption(option: SortOption) {
-        _state.update { currentState ->
-            val sortedMemes = sortMemes(currentState.memes, option)
-            currentState.copy(
-                sortOption = option,
-                memes = sortedMemes
-            )
+        viewModelScope.launch {
+            sortOptionFlow.emit(option)
+            _state.update { it.copy(sortOption = option) }
         }
     }
 }

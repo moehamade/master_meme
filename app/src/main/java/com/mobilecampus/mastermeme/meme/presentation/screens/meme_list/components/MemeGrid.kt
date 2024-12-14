@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
@@ -127,6 +128,7 @@ fun TemplateGrid(
 @Composable
 fun UserMemeGrid(
     memes: List<MemeItem.ImageMeme>,
+    state: LazyGridState,
     onMemeTap: (MemeItem.ImageMeme) -> Unit,
     onFavoriteToggle: (MemeItem.ImageMeme) -> Unit,
     modifier: Modifier = Modifier,
@@ -140,6 +142,7 @@ fun UserMemeGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         modifier = modifier,
+        state = state,
         contentPadding = contentPadding,
         horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         verticalArrangement = Arrangement.spacedBy(itemSpacing)
