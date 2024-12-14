@@ -1,5 +1,13 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
@@ -107,6 +115,7 @@ fun TemplateGrid(
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun UserMemeGrid(
     memes: List<MemeItem.ImageMeme>,
@@ -117,7 +126,7 @@ fun UserMemeGrid(
     contentPadding: PaddingValues = PaddingValues(16.dp),
     itemSpacing: Dp = 8.dp,
     isSelectionMode: Boolean = false,
-    selectedMemes: Set<Int> = emptySet(), // Changed from Set<String> to Set<Int>
+    selectedMemes: Set<Int> = emptySet(),
     onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit
 ) {
     LazyVerticalGrid(
@@ -127,15 +136,35 @@ fun UserMemeGrid(
         horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         verticalArrangement = Arrangement.spacedBy(itemSpacing)
     ) {
-        userMemeItems(
-            memes = memes,
-            onMemeClick = onMemeTap,
-            onFavoriteToggle = onFavoriteToggle,
-            isSelectionMode = isSelectionMode,
-            selectedMemes = selectedMemes,
-            onSelectionToggle = onSelectionToggle,
-            itemSpacing = itemSpacing
-        )
+        items(
+            items = memes,
+            key = { it.createdAt }
+        ) { meme ->
+            AnimatedContent(
+                targetState = meme,
+                transitionSpec = {
+                    (fadeIn(
+                        animationSpec = tween(
+                            220,
+                            delayMillis = 90
+                        )
+                    ) + scaleIn(
+                        initialScale = 0.92f,
+                        animationSpec = tween(220, delayMillis = 90)
+                    )).togetherWith(fadeOut(animationSpec = tween(90)))
+                }
+            ) { targetMeme ->
+                ImageMemeCard(
+                    meme = targetMeme,
+                    onClick = onMemeTap,
+                    modifier = Modifier.padding(itemSpacing),
+                    onFavoriteToggle = onFavoriteToggle,
+                    isSelectionMode = isSelectionMode,
+                    isSelected = targetMeme.id?.let { selectedMemes.contains(it) } ?: false,
+                    onSelectionToggle = onSelectionToggle
+                )
+            }
+        }
     }
 }
 
