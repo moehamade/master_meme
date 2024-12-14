@@ -15,6 +15,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.mobilecampus.mastermeme.R
+import com.mobilecampus.mastermeme.meme.domain.data_source.MemeDataSource
+import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.domain.use_case.SaveMemeUseCase
@@ -25,7 +27,8 @@ import java.io.FileOutputStream
 import java.util.UUID
 
 class SaveMemeUseCaseImpl(
-    private val context: Context
+    private val context: Context,
+    private val dataSource: MemeDataSource,
 ) : SaveMemeUseCase {
     override suspend fun saveMeme(
         backgroundImageResId: Int,
@@ -42,6 +45,14 @@ class SaveMemeUseCaseImpl(
             textBoxes = textBoxes,
             imageOffset = Offset(imageOffsetX, imageOffsetY),
             imageSize = IntSize(imageWidth, imageHeight)
+        )
+        dataSource.saveMeme(
+            MemeItem.ImageMeme(
+                imageUri = path,
+                createdAt = System.currentTimeMillis(),
+                description = "",
+                isFavorite = false
+            )
         )
 
         // <TODO> Vordead remove this logging - we keep it here for debugging purposes

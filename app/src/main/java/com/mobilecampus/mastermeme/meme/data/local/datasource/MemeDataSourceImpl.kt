@@ -6,7 +6,7 @@ import com.mobilecampus.mastermeme.meme.data.local.dao.MemeDao
 import com.mobilecampus.mastermeme.meme.data.local.mapper.toDomain
 import com.mobilecampus.mastermeme.meme.data.local.mapper.toEntity
 import com.mobilecampus.mastermeme.meme.domain.data_source.MemeDataSource
-import com.mobilecampus.mastermeme.meme.domain.model.Meme
+import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -24,17 +24,17 @@ class MemeLocalDataSourceImpl(
         }
     }
 
-    override fun getMemes(): Flow<List<Meme>> {
+    override fun getMemes(): Flow<List<MemeItem.ImageMeme>> {
         return memeDao.getMemes().map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
-    override suspend fun saveMeme(meme: Meme) {
+    override suspend fun saveMeme(meme: MemeItem.ImageMeme) {
         memeDao.insertMeme(meme.toEntity())
     }
 
-    override suspend fun deleteMeme(meme: Meme) {
+    override suspend fun deleteMeme(meme: MemeItem.ImageMeme) {
         memeDao.deleteMeme(meme.toEntity())
         // Also delete the image file
         File(meme.imageUri).delete()

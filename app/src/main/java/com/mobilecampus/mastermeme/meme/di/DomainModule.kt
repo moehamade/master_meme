@@ -10,6 +10,7 @@ import com.mobilecampus.mastermeme.meme.domain.use_case.GetMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.SaveMemeUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val domainModule = module {
@@ -17,5 +18,5 @@ val domainModule = module {
     factory<ToggleFavoriteUseCase> { ToggleFavoriteUseCaseImpl(get()) }
     factory<DeleteMemeUseCase> { DeleteMemeUseCaseImpl(get()) }
     factory<GetTemplatesUseCase> { GetTemplatesUseCaseImpl(get()) }
-    factory<SaveMemeUseCase> { SaveMemeUseCaseImpl(get()) }
+    factory<SaveMemeUseCase> { SaveMemeUseCaseImpl(androidContext(), get())}
 }
