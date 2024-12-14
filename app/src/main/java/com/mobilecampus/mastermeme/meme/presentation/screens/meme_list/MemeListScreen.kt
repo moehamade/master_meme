@@ -115,7 +115,7 @@ fun MemeListScreen(
                 MemeGrid(
                     items = state.memes,
                     onItemClick = { meme ->
-                        onAction(MemeListAction.MemeClickAction(meme.id))
+                        onAction(MemeListAction.MemeClickAction(meme.id!!))
                     },
                     modifier = Modifier
                         .padding(paddingValues)

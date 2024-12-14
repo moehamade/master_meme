@@ -22,7 +22,6 @@ class GetTemplatesUseCaseImpl(
             )
 
             MemeItem.Template(
-                id = UUID.randomUUID().toString(),
                 imageUri = resourceName,
                 description = "Template $index",
                 resourceId = resourceId  // Store the actual resource ID

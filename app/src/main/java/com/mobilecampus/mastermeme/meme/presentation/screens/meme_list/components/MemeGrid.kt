@@ -175,7 +175,7 @@ fun <T : MemeItem> MemeGrid(
     ) {
         items(
             items = items,
-            key = { it.id }
+            key = { if(it is MemeItem.Template) it.resourceId else it.id!! }
         ) { item ->
             when (item) {
                 is MemeItem.Template -> TemplateCard(
@@ -184,7 +184,8 @@ fun <T : MemeItem> MemeGrid(
                 )
                 is MemeItem.ImageMeme -> ImageMemeCard(
                     meme = item,
-                    onClick = {  }
+                    onClick = {  },
+                    onFavoriteToggle = {}
                 )
             }
             extraItemContent?.invoke(item)
