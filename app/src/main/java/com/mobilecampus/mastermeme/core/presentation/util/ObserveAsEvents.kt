@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.core.presentation.design_system
+package com.mobilecampus.mastermeme.core.presentation.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
