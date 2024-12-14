@@ -37,8 +37,9 @@ import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.core.presentation.design_system.ObserveAsEvents
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
-import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.TemplateGrid
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.UserMemeGrid
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -112,14 +113,25 @@ fun MemeListScreen(
             is MemeListState.Error -> TODO()
             is MemeListState.Loaded -> {
                 // Using our new MemeGrid component for the created memes
-                MemeGrid(
-                    items = state.memes,
-                    onItemClick = { meme ->
-                        onAction(MemeListAction.MemeClickAction(meme.id!!))
-                    },
+                UserMemeGrid(
+                    memes = state.memes,
                     modifier = Modifier
                         .padding(paddingValues)
-                        .fillMaxSize()
+                        .fillMaxSize(),
+
+                    onMemeTap = {
+
+                    },
+                    onFavoriteToggle = {
+
+                    },
+                    onSelectionToggle = { meme, isSelected ->
+                        if (isSelected) {
+                            selectedItemsCount++
+                        } else {
+                            selectedItemsCount--
+                        }
+                    }
                 )
             }
             MemeListState.Loading -> CircularProgressIndicator(
@@ -171,12 +183,13 @@ private fun TemplateSelectionContent(
             )
         )
 
-        MemeGrid(
-            items = templates,
-            onItemClick = onTemplateSelected,
+        TemplateGrid(
+            templates = templates,
+            onTemplateClick = onTemplateSelected,
             columns = 2,
             contentPadding = PaddingValues(0.dp)
         )
+
     }
 }
 
