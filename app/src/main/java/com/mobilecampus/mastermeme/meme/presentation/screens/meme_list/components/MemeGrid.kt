@@ -25,21 +25,20 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.mobilecampus.mastermeme.core.presentation.design_system.RoundedCheckbox
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 
@@ -251,7 +250,7 @@ fun ImageMemeCard(
 
         // Selection checkbox overlay
         if (isSelectionMode) {
-            Checkbox(
+            RoundedCheckbox(
                 checked = isSelected,
                 onCheckedChange = { checked ->
                     onSelectionToggle?.invoke(meme, checked)
@@ -281,7 +280,7 @@ fun ImageMemeCard(
                     } else {
                         "Add to favorites"
                     },
-                    tint = if (meme.isFavorite) Color.Red else Color.White
+                    tint = MaterialTheme.colorScheme.primaryContainer
                 )
             }
         }
