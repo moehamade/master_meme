@@ -29,6 +29,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
+import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 
 
 // Extension function for template grids
@@ -134,8 +137,14 @@ fun UserMemeGrid(
     itemSpacing: Dp = 8.dp,
     isSelectionMode: Boolean = false,
     selectedMemes: Set<Int> = emptySet(),
-    onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit
+    onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit,
+    sortOption: SortOption // Add this parameter
 ) {
+    // Effect to scroll to top when sort option changes
+    LaunchedEffect(sortOption) {
+        state.animateScrollToItem(0)
+    }
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         modifier = modifier,

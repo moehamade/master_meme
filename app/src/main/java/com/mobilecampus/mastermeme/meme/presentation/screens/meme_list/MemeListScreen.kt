@@ -1,6 +1,8 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -29,15 +32,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
+import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.TemplateGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.UserMemeGrid
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,10 +83,6 @@ fun MemeListScreen(
     var isDropdownMenuExpanded by remember { mutableStateOf(false) }
     val gridScrollState = rememberLazyGridState()
 
-    // Reset scroll position when sort option changes
-    LaunchedEffect(state.sortOption) {
-        gridScrollState.animateScrollToItem(0)
-    }
     Scaffold(
         topBar = {
             MemeListTopAppBar(
@@ -140,7 +142,7 @@ fun MemeListScreen(
                             if (state.isSelectionModeActive) {
                                 onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
                             } else {
-//                                onAction(MemeListAction.OpenMemeEditor(meme.id!!))
+                                // onAction(MemeListAction.OpenMemeEditor(meme.id!!))
                             }
                         },
                         onFavoriteToggle = { meme ->
@@ -157,7 +159,8 @@ fun MemeListScreen(
                         selectedMemes = state.selectedMemes,
                         onSelectionToggle = { meme, isSelected ->
                             onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
-                        }
+                        },
+                        sortOption = state.sortOption // Add this parameter
                     )
                 }
             }
