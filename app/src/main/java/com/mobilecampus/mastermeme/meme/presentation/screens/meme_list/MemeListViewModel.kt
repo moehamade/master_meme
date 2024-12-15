@@ -30,6 +30,7 @@ data class MemeListScreenState(
     val selectedMemesIds: Set<Int> = emptySet(),
     val isBottomSheetVisible: Boolean = false,
     val templateSearchQuery: String = "",
+    val isDeleteDialogVisible: Boolean = false, // New state
 ) {
     // Helper properties for UI logic
     val selectedMemesCount: Int get() = selectedMemesIds.size
@@ -65,6 +66,9 @@ sealed interface MemeListAction {
 
     // Sorting
     data class UpdateSortOption(val option: SortOption) : MemeListAction
+
+    data class SetDeleteDialogVisible(val visible: Boolean) : MemeListAction
+
 }
 
 // Contains all events that can be emitted by the ViewModel
@@ -139,6 +143,7 @@ class MemeListViewModel(
             is MemeListAction.OpenTemplateEditor -> navigateToEditor(action.templateId)
             is MemeListAction.ToggleFavorite -> toggleFavorite(action.meme)
             is MemeListAction.DeleteSelectedMemes -> deleteSelectedMemes(action.ids)
+            is MemeListAction.SetDeleteDialogVisible -> setDeleteDialogVisible(action.visible)
             is MemeListAction.ToggleMemeSelection -> toggleMemeSelection(action.memeId)
             is MemeListAction.EnableSelectionMode -> enableSelectionMode()
             is MemeListAction.DisableSelectionMode -> disableSelectionMode()
@@ -147,6 +152,10 @@ class MemeListViewModel(
             is MemeListAction.SetBottomSheetVisibility -> updateBottomSheetVisibility(action.visible)
             is MemeListAction.UpdateSortOption -> updateSortOption(action.option)
         }
+    }
+
+    private fun setDeleteDialogVisible(visible: Boolean) {
+        _state.update { it.copy(isDeleteDialogVisible = visible) }
     }
 
     private fun navigateToEditor(id: Int) {
@@ -175,6 +184,7 @@ class MemeListViewModel(
 
                 clearSelection()
                 disableSelectionMode()
+                setDeleteDialogVisible(false) // Hide dialog after successful deletion
 
                 _state.update { it.copy(loadingState = LoadingState.Success) }
             } catch (e: Exception) {
