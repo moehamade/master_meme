@@ -35,10 +35,18 @@ class MemeLocalDataSourceImpl(
         memeDao.insertMeme(meme.toEntity())
     }
 
-    override suspend fun deleteMeme(meme: MemeItem.ImageMeme) {
-        memeDao.deleteMeme(meme.toEntity())
-        // Also delete the image file
-        File(meme.imageUri).delete()
+    override suspend fun deleteMemes(ids: Set<Int>): Set<String> {
+        // Get the full entities that need to be deleted
+        val memesToDelete = memeDao.getMemesByIds(ids)
+
+        // Get the URIs before deletion
+        val imageUris = memesToDelete.map { it.imageUri }.toSet()
+
+        // Delete the entities
+        memeDao.deleteMemes(memesToDelete.toSet())
+
+        // Return the URIs of deleted entries
+        return imageUris
     }
 
     override suspend fun toggleFavorite(memeId: Int) {

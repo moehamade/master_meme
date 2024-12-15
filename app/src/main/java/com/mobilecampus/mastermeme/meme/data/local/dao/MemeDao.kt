@@ -16,8 +16,11 @@ interface MemeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMeme(meme: MemeEntity)
 
+    @Query("SELECT * FROM memes WHERE id IN (:ids)")
+    suspend fun getMemesByIds(ids: Set<Int>): List<MemeEntity>
+
     @Delete
-    suspend fun deleteMeme(meme: MemeEntity)
+    suspend fun deleteMemes(memes: Set<MemeEntity>)
 
     @Query("UPDATE memes SET isFavorite = NOT isFavorite WHERE id = :memeId")
     suspend fun toggleFavorite(memeId: Int)
