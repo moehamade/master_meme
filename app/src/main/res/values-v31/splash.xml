@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="Theme.MasterMeme.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/colorSplash</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/purple_200</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="postSplashScreenTheme">@style/Theme.MasterMeme</item>
         <item name="android:actionBarTheme">@style/Theme.MasterMeme</item>
