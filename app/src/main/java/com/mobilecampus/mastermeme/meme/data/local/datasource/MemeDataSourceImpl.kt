@@ -2,6 +2,7 @@ package com.mobilecampus.mastermeme.meme.data.local.datasource
 
 import android.content.Context
 import android.graphics.Bitmap
+import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons.meme
 import com.mobilecampus.mastermeme.meme.data.local.dao.MemeDao
 import com.mobilecampus.mastermeme.meme.data.local.mapper.toDomain
 import com.mobilecampus.mastermeme.meme.data.local.mapper.toEntity

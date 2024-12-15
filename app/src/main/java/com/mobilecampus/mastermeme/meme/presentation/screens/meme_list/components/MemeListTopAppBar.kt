@@ -16,6 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppTopAppBar
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 
@@ -26,15 +28,20 @@ fun MemeListTopAppBar(
     isDropdownMenuExpanded: Boolean,
     selectedSortOption: SortOption,
     onDropDownMenuClick: () -> Unit,
+    onCancelSelection: () -> Unit,
     onDropdownMenuDismiss: () -> Unit,
     onDropdownMenuItemClick: (SortOption) -> Unit,
     modifier: Modifier = Modifier
 ) {
     AppTopAppBar(
-        title = if (selectedItemsCount > 0) selectedItemsCount.toString() else "Your memes",
+        title = if (selectedItemsCount > 0) {
+            selectedItemsCount.toString()
+        } else {
+            stringResource(R.string.your_memes)
+        },
         navigationIcon = {
             if (selectedItemsCount > 0) {
-                IconButton(onClick = {}) {
+                IconButton(onClick = onCancelSelection) {
                     Icon(Icons.Filled.Close, contentDescription = null)
                 }
             }
@@ -44,7 +51,7 @@ fun MemeListTopAppBar(
                 IconButton(onClick = {}) {
                     Icon(Icons.Filled.Share, contentDescription = null)
                 }
-                IconButton(onClick = { /* doSomething() */ }) {
+                IconButton(onClick = {}) {
                     Icon(Icons.Outlined.Delete, contentDescription = null)
                 }
             } else {

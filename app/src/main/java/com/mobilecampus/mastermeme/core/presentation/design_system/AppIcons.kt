@@ -13,7 +13,7 @@ object AppIcons {
         get() = Icons.Outlined.Add
 
     val meme: Array<Int> by lazy {
-        Array(49) { index ->
+        Array(50) { index ->
             val number = (index + 1).toString().padStart(2, '0')
             val resourceName = "meme_template_$number"
             R.drawable::class.java.getField(resourceName).getInt(null)

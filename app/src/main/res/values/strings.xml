@@ -3,4 +3,5 @@
     <string name="tap_button_to_create_your_first_meme">Tap + button to create your first meme</string>
     <string name="meme_list_choose_meme">Choose Template</string>
     <string name="meme_list_choose_meme_description">Choose template for your next meme masterpiece</string>
+    <string name="your_memes">Your memes</string>
 </resources>
