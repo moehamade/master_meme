@@ -73,9 +73,15 @@ fun LazyGridScope.userMemeItems(
 ) {
     items(
         items = memes,
-        key = { meme -> "${meme.createdAt}_${meme.isFavorite}" }
+        key = { meme -> meme.id!! }
     ) { meme ->
-        Box(
+        ImageMemeCard(
+            meme = meme,
+            onClick = onMemeClick,
+            onFavoriteToggle = onFavoriteToggle,
+            isSelectionMode = isSelectionMode,
+            isSelected = meme.id?.let { selectedMemes.contains(it) } ?: false,
+            onSelectionToggle = onSelectionToggle,
             modifier = modifier
                 .padding(itemSpacing)
                 .animateItem(
@@ -86,19 +92,10 @@ fun LazyGridScope.userMemeItems(
                     ),
                     fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow)
                 ),
-            contentAlignment = Alignment.Center
-        ) {
-            ImageMemeCard(
-                meme = meme,
-                onClick = onMemeClick,
-                onFavoriteToggle = onFavoriteToggle,
-                isSelectionMode = isSelectionMode,
-                isSelected = meme.id?.let { selectedMemes.contains(it) } ?: false,
-                onSelectionToggle = onSelectionToggle
-            )
-        }
+        )
     }
 }
+
 
 @Composable
 fun TemplateGrid(
