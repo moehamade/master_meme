@@ -27,22 +27,22 @@ val fontFamily = FontFamily(
 
 val Typography = Typography(
 
-    //Big Text
-    bodyMedium = TextStyle(
-        fontFamily = fontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 20.sp,
-    ),
-
     //Regular Text
     bodyLarge = TextStyle(
         fontFamily = fontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
+        fontSize = 20.sp,
         /*...*/
     ),
 
     //Medium Text
+    bodyMedium = TextStyle(
+        fontFamily = fontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+    ),
+
+    //Big Text
     bodySmall = TextStyle(
         fontFamily = fontFamily,
         fontWeight = FontWeight.Normal,

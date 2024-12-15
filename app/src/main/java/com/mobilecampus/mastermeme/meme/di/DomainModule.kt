@@ -16,7 +16,7 @@ import org.koin.dsl.module
 val domainModule = module {
     factory<GetMemesUseCase> { GetMemesUseCaseImpl(get()) }
     factory<ToggleFavoriteUseCase> { ToggleFavoriteUseCaseImpl(get()) }
-    factory<DeleteMemeUseCase> { DeleteMemeUseCaseImpl(get()) }
+    factory<DeleteMemeUseCase> { DeleteMemeUseCaseImpl(get(),get()) }
     factory<GetTemplatesUseCase> { GetTemplatesUseCaseImpl(get()) }
     factory<SaveMemeUseCase> { SaveMemeUseCaseImpl(androidContext(), get())}
 }

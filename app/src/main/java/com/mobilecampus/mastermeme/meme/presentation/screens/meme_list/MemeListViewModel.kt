@@ -27,12 +27,13 @@ data class MemeListScreenState(
     val loadingState: LoadingState = LoadingState.Loading,
     val sortOption: SortOption = SortOption.FAVORITES_FIRST,
     val isSelectionModeActive: Boolean = false,
-    val selectedMemes: Set<Int> = emptySet(),
+    val selectedMemesIds: Set<Int> = emptySet(),
     val isBottomSheetVisible: Boolean = false,
     val templateSearchQuery: String = "",
+    val isDeleteDialogVisible: Boolean = false, // New state
 ) {
     // Helper properties for UI logic
-    val selectedMemesCount: Int get() = selectedMemes.size
+    val selectedMemesCount: Int get() = selectedMemesIds.size
     val isEmpty: Boolean get() = loadingState == LoadingState.Success && memes.isEmpty()
 }
 
@@ -65,6 +66,9 @@ sealed interface MemeListAction {
 
     // Sorting
     data class UpdateSortOption(val option: SortOption) : MemeListAction
+
+    data class SetDeleteDialogVisible(val visible: Boolean) : MemeListAction
+
 }
 
 // Contains all events that can be emitted by the ViewModel
@@ -139,6 +143,7 @@ class MemeListViewModel(
             is MemeListAction.OpenTemplateEditor -> navigateToEditor(action.templateId)
             is MemeListAction.ToggleFavorite -> toggleFavorite(action.meme)
             is MemeListAction.DeleteSelectedMemes -> deleteSelectedMemes(action.ids)
+            is MemeListAction.SetDeleteDialogVisible -> setDeleteDialogVisible(action.visible)
             is MemeListAction.ToggleMemeSelection -> toggleMemeSelection(action.memeId)
             is MemeListAction.EnableSelectionMode -> enableSelectionMode()
             is MemeListAction.DisableSelectionMode -> disableSelectionMode()
@@ -147,6 +152,10 @@ class MemeListViewModel(
             is MemeListAction.SetBottomSheetVisibility -> updateBottomSheetVisibility(action.visible)
             is MemeListAction.UpdateSortOption -> updateSortOption(action.option)
         }
+    }
+
+    private fun setDeleteDialogVisible(visible: Boolean) {
+        _state.update { it.copy(isDeleteDialogVisible = visible) }
     }
 
     private fun navigateToEditor(id: Int) {
@@ -168,21 +177,28 @@ class MemeListViewModel(
     }
 
     private fun deleteSelectedMemes(ids: Set<Int>) {
-//        viewModelScope.launch {
-//            try {
-//                ids.forEach { deleteMemesUseCase(it) }
-//                clearSelection()
-//            } catch (e: Exception) {
-//                eventChannel.send(
-//                    MemeListScreenEvent.ShowError("Failed to delete memes")
-//                )
-//            }
-//        }
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(loadingState = LoadingState.Loading) }
+                deleteMemesUseCase(ids)
+
+                clearSelection()
+                disableSelectionMode()
+                setDeleteDialogVisible(false) // Hide dialog after successful deletion
+
+                _state.update { it.copy(loadingState = LoadingState.Success) }
+            } catch (e: Exception) {
+                _state.update { it.copy(loadingState = LoadingState.Success) }
+                eventChannel.send(
+                    MemeListScreenEvent.ShowError("Failed to delete memes: ${e.message}")
+                )
+            }
+        }
     }
 
     private fun toggleMemeSelection(memeId: Int) {
         _state.update { currentState ->
-            val newSelectedMemes = currentState.selectedMemes.toMutableSet()
+            val newSelectedMemes = currentState.selectedMemesIds.toMutableSet()
             if (memeId in newSelectedMemes) {
                 newSelectedMemes.remove(memeId)
             } else {
@@ -190,7 +206,7 @@ class MemeListViewModel(
             }
 
             currentState.copy(
-                selectedMemes = newSelectedMemes,
+                selectedMemesIds = newSelectedMemes,
                 isSelectionModeActive = newSelectedMemes.isNotEmpty()
             )
         }
@@ -206,7 +222,7 @@ class MemeListViewModel(
     }
 
     private fun clearSelection() {
-        _state.update { it.copy(selectedMemes = emptySet()) }
+        _state.update { it.copy(selectedMemesIds = emptySet()) }
     }
 
     private fun updateTemplateSearch(query: String) {

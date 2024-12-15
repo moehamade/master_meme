@@ -1,8 +1,6 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,7 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -20,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,18 +32,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
-import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.TemplateGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.UserMemeGrid
-import kotlinx.coroutines.delay
+import com.mobilecampus.mastermeme.ui.theme.White
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +59,7 @@ fun MemeListScreenRoot(
                 is MemeListScreenEvent.NavigateToEditor -> {
                     onOpenEditorScreen(event.id)
                 }
+
                 is MemeListScreenEvent.ShowError -> {
                     // Show error using your preferred method (Snackbar, Toast, etc.)
                 }
@@ -92,6 +91,9 @@ fun MemeListScreen(
                 onDropDownMenuClick = { isDropdownMenuExpanded = true },
                 onDropdownMenuDismiss = { isDropdownMenuExpanded = false },
                 onCancelSelection = { onAction(MemeListAction.DisableSelectionMode) },
+                onDeleteClick = {
+                    onAction(MemeListAction.SetDeleteDialogVisible(true))
+                },
                 onDropdownMenuItemClick = { option ->
                     onAction(MemeListAction.UpdateSortOption(option))
                     isDropdownMenuExpanded = false
@@ -117,6 +119,7 @@ fun MemeListScreen(
                         .wrapContentSize()
                 )
             }
+
             is LoadingState.Error -> {
                 // You can create a custom error state component
                 Text(
@@ -127,6 +130,7 @@ fun MemeListScreen(
                         .wrapContentSize()
                 )
             }
+
             LoadingState.Success -> {
                 if (state.isEmpty) {
                     EmptyMemeListState(
@@ -156,7 +160,7 @@ fun MemeListScreen(
                             )
                             .fillMaxSize(),
                         isSelectionMode = state.isSelectionModeActive,
-                        selectedMemes = state.selectedMemes,
+                        selectedMemes = state.selectedMemesIds,
                         onSelectionToggle = { meme, isSelected ->
                             onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
                         },
@@ -176,11 +180,27 @@ fun MemeListScreen(
                 TemplateSelectionContent(
                     templates = state.filteredTemplates,
                     onTemplateSelected = { template ->
-                        onAction(MemeListAction.OpenTemplateEditor(template.resourceId))
                         onAction(MemeListAction.SetBottomSheetVisibility(false))
+                        onAction(MemeListAction.OpenTemplateEditor(template.resourceId))
                     }
                 )
             }
+        }
+
+        if (state.isDeleteDialogVisible) {
+            DeleteMemesDialog(
+                selectedCount = state.selectedMemesCount,
+                onConfirm = {
+                    onAction(MemeListAction.DeleteSelectedMemes(state.selectedMemesIds))
+                },
+                onCancel = {
+                    onAction(MemeListAction.SetDeleteDialogVisible(false))
+                },
+                onDismiss = {
+                    onAction(MemeListAction.SetDeleteDialogVisible(false))
+                    onAction(MemeListAction.DisableSelectionMode)
+                }
+            )
         }
     }
 }
@@ -238,4 +258,48 @@ fun EmptyMemeListState(modifier: Modifier) {
             )
         )
     }
+}
+
+@Composable
+fun DeleteMemesDialog(
+    selectedCount: Int,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Delete $selectedCount ${if (selectedCount == 1) "meme" else "memes"}?",
+                style = MaterialTheme.typography.headlineLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+            )
+        },
+        text = {
+            Text(
+                text = "You will not be able to restore them. If you're fine with that, press 'Delete'.",
+                style = MaterialTheme.typography.bodyMedium.copy(color = White)
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.surfaceDim
+                )
+            ) {
+                Text("Delete",style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surfaceDim))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onCancel, colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.surfaceDim
+
+                )
+            ) {
+                Text("Cancel", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surfaceDim))
+            }
+        }
+    )
 }
