@@ -174,8 +174,8 @@ fun MemeListScreen(
                 TemplateSelectionContent(
                     templates = state.filteredTemplates,
                     onTemplateSelected = { template ->
-                        onAction(MemeListAction.OpenTemplateEditor(template.resourceId))
                         onAction(MemeListAction.SetBottomSheetVisibility(false))
+                        onAction(MemeListAction.OpenTemplateEditor(template.resourceId))
                     }
                 )
             }
