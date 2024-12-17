@@ -97,6 +97,9 @@ fun MemeListScreen(
                 onDropdownMenuItemClick = { option ->
                     onAction(MemeListAction.UpdateSortOption(option))
                     isDropdownMenuExpanded = false
+                },
+                onShareClick = {
+                    onAction(MemeListAction.ShareSelectedMemes)
                 }
             )
         },

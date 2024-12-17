@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface MemeDataSource {
     fun getMemes(): Flow<List<MemeItem.ImageMeme>>
+    suspend fun getMemesByIds(ids: Set<Int>): List<MemeItem.ImageMeme>
     suspend fun saveMeme(meme: MemeItem.ImageMeme)
     suspend fun deleteMemes(ids: Set<Int>): Set<String>
     suspend fun toggleFavorite(memeId: Int)

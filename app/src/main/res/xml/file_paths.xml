@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Internal app files -->
+    <files-path
+        name="internal_files"
+        path="." />
+
+    <!-- App-specific directory -->
+    <files-path
+        name="meme_files"
+        path="../app_memes/" />
+
+    <!-- Cache directory -->
+    <cache-path
+        name="cache"
+        path="." />
+
+    <!-- External storage if needed -->
+    <external-files-path
+        name="external_files"
+        path="." />
+    <external-cache-path
+        name="external_cache"
+        path="." />
+</paths>

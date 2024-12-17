@@ -31,6 +31,10 @@ class MemeLocalDataSourceImpl(
         }
     }
 
+    override suspend fun getMemesByIds(ids: Set<Int>): List<MemeItem.ImageMeme> {
+        return memeDao.getMemesByIds(ids).map { it.toDomain() }
+    }
+
     override suspend fun saveMeme(meme: MemeItem.ImageMeme) {
         memeDao.insertMeme(meme.toEntity())
     }

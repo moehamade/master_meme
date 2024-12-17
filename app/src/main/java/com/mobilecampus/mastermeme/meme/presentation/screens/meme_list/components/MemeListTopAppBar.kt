@@ -32,6 +32,7 @@ fun MemeListTopAppBar(
     onDropdownMenuDismiss: () -> Unit,
     onDropdownMenuItemClick: (SortOption) -> Unit,
     onDeleteClick: () -> Unit,
+    onShareClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     AppTopAppBar(
@@ -49,7 +50,7 @@ fun MemeListTopAppBar(
         },
         actions = {
             if (selectedItemsCount > 0) {
-                IconButton(onClick = {}) {
+                IconButton(onClick = onShareClick) {
                     Icon(Icons.Filled.Share, contentDescription = null)
                 }
                 IconButton(onClick = onDeleteClick) {

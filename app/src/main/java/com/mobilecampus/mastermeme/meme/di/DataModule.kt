@@ -12,5 +12,5 @@ val dataModule = module {
     single { Room.databaseBuilder(get(), MemeDatabase::class.java, "meme_database").build() }
     single { get<MemeDatabase>().memeDao() }
     single<MemeDataSource> { MemeLocalDataSourceImpl(get(), get()) }
-    single<FileManager> { FileManagerImpl() }
+    single<FileManager> { FileManagerImpl(get()) }
 }
