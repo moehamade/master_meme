@@ -7,6 +7,7 @@ import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import com.mobilecampus.mastermeme.meme.domain.use_case.DeleteMemeUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
+import com.mobilecampus.mastermeme.meme.domain.use_case.ShareMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,6 +70,9 @@ sealed interface MemeListAction {
 
     data class SetDeleteDialogVisible(val visible: Boolean) : MemeListAction
 
+    object ShareSelectedMemes : MemeListAction
+
+
 }
 
 // Contains all events that can be emitted by the ViewModel
@@ -82,8 +86,9 @@ class MemeListViewModel(
     private val getMemesUseCase: GetMemesUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     private val deleteMemesUseCase: DeleteMemeUseCase,
-    private val getTemplatesUseCase: GetTemplatesUseCase
-) : ViewModel() {
+    private val getTemplatesUseCase: GetTemplatesUseCase,
+    private val shareMemesUseCase: ShareMemesUseCase,
+    ) : ViewModel() {
     private val sortOptionFlow = MutableStateFlow(SortOption.FAVORITES_FIRST)
 
     private val _state = MutableStateFlow(MemeListScreenState())
@@ -151,6 +156,20 @@ class MemeListViewModel(
             is MemeListAction.UpdateTemplateSearch -> updateTemplateSearch(action.query)
             is MemeListAction.SetBottomSheetVisibility -> updateBottomSheetVisibility(action.visible)
             is MemeListAction.UpdateSortOption -> updateSortOption(action.option)
+            is MemeListAction.ShareSelectedMemes -> shareSelectedMemes()
+        }
+    }
+
+    private fun shareSelectedMemes() {
+        viewModelScope.launch {
+            try {
+                shareMemesUseCase(state.value.selectedMemesIds)
+                disableSelectionMode()
+            } catch (e: Exception) {
+                eventChannel.send(
+                    MemeListScreenEvent.ShowError("Failed to share memes: ${e.message}")
+                )
+            }
         }
     }
 
