@@ -1,10 +1,13 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,14 +25,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 
 @Composable
 fun EditTextDialog(
     initialText: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onDismiss: () -> Unit = {},
+    onConfirm: (String) -> Unit = { _ -> },
 ) {
     var text by remember { mutableStateOf(initialText) }
     val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
@@ -81,6 +86,22 @@ fun EditTextDialog(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+private fun DraggableTextBoxPreview() {
+    MasterMemeTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.Center)
+        ) {
+            EditTextDialog(
+                initialText = "Hello, World!",
+            )
         }
     }
 }

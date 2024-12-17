@@ -32,15 +32,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
+import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.TemplateGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.UserMemeGrid
+import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 import com.mobilecampus.mastermeme.ui.theme.White
 import org.koin.androidx.compose.koinViewModel
 
@@ -77,7 +82,7 @@ fun MemeListScreenRoot(
 @Composable
 fun MemeListScreen(
     state: MemeListScreenState,
-    onAction: (MemeListAction) -> Unit
+    onAction: (MemeListAction) -> Unit = {},
 ) {
     var isDropdownMenuExpanded by remember { mutableStateOf(false) }
     val gridScrollState = rememberLazyGridState()
@@ -291,7 +296,10 @@ fun DeleteMemesDialog(
                     contentColor = MaterialTheme.colorScheme.surfaceDim
                 )
             ) {
-                Text("Delete",style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surfaceDim))
+                Text(
+                    "Delete",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surfaceDim)
+                )
             }
         },
         dismissButton = {
@@ -301,8 +309,76 @@ fun DeleteMemesDialog(
 
                 )
             ) {
-                Text("Cancel", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surfaceDim))
+                Text(
+                    "Cancel",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surfaceDim)
+                )
             }
         }
     )
 }
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+private fun MemeListScreenPreview(
+    @PreviewParameter(MemeListParams::class) state: MemeListScreenState
+) {
+    MasterMemeTheme {
+        MemeListScreen(state = state)
+    }
+}
+
+class MemeListParams : PreviewParameterProvider<MemeListScreenState> {
+    override val values: Sequence<MemeListScreenState>
+        get() = sequenceOf(
+            MemeListScreenState(
+                loadingState = LoadingState.Success,
+                memes = emptyList(),
+                filteredTemplates = emptyList(),
+                isBottomSheetVisible = false,
+                isDeleteDialogVisible = false,
+                isSelectionModeActive = false,
+                selectedMemesIds = emptySet(),
+                sortOption = SortOption.NEWEST_FIRST,
+            ),
+            MemeListScreenState(
+                loadingState = LoadingState.Loading,
+                memes = emptyList(),
+                filteredTemplates = emptyList(),
+                isBottomSheetVisible = false,
+                isDeleteDialogVisible = false,
+                isSelectionModeActive = false,
+                selectedMemesIds = emptySet(),
+                sortOption = SortOption.NEWEST_FIRST,
+            ),
+            MemeListScreenState(
+                loadingState = LoadingState.Success,
+                memes = listOf(
+                    MemeItem.ImageMeme(
+                        id = R.drawable.meme_template_01,
+                        description = "Meme 1",
+                        isFavorite = false,
+                        imageUri = "https://example.com/image.jpg"
+                    ),
+                ),
+                filteredTemplates = emptyList(),
+                isBottomSheetVisible = true,
+                isDeleteDialogVisible = false,
+                isSelectionModeActive = false,
+                selectedMemesIds = emptySet(),
+                sortOption = SortOption.NEWEST_FIRST,
+            ),
+            MemeListScreenState(
+                loadingState = LoadingState.Success,
+                memes = emptyList(),
+                filteredTemplates = emptyList(),
+                isBottomSheetVisible = false,
+                isDeleteDialogVisible = true,
+                isSelectionModeActive = false,
+                selectedMemesIds = emptySet(),
+                sortOption = SortOption.NEWEST_FIRST,
+            ),
+        )
+}
+
+

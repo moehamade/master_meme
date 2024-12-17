@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,24 +22,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.util.ObserveAsEvents
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
+import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
+import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.AppSlider
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DraggableTextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.EditTextDialog
+import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MemeEditorScreenRoot(
     @DrawableRes backgroundImageResId: Int,
-    onNavigateBack : () -> Unit,
+    onNavigateBack: () -> Unit,
     viewModel: MemeEditorViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
@@ -76,7 +83,7 @@ fun MemeEditorScreenRoot(
 fun MemeEditorScreen(
     @DrawableRes resId: Int,
     state: MemeEditorState,
-    onAction: (MemeEditorAction) -> Unit
+    onAction: (MemeEditorAction) -> Unit = {},
 ) {
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -117,7 +124,11 @@ fun MemeEditorScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // keep track of previously selected textbox, so we reset AppSlider positions
-            var lastIdSelected by remember { mutableIntStateOf(state.currentEditingTextBox?.id ?: -1) }
+            var lastIdSelected by remember {
+                mutableIntStateOf(
+                    state.currentEditingTextBox?.id ?: -1
+                )
+            }
             state.currentEditingTextBox?.let {
                 var fontSize by remember { mutableFloatStateOf(it.style.fontSize) }
 
@@ -174,6 +185,37 @@ fun MemeEditorScreen(
                 initialText = state.currentEditingTextBox.text,
                 onDismiss = { onAction(MemeEditorAction.CancelEditing) },
                 onConfirm = { newText -> onAction(MemeEditorAction.ConfirmTextChange(newText)) }
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MemeEditorScreenPreview() {
+    MasterMemeTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.Center)
+        ) {
+            MemeEditorScreen(
+                resId = R.drawable.meme_template_01,
+                state = MemeEditorState().copy(
+                    showEditDialog = true,
+                    textBoxes = listOf(
+                        TextBox(
+                            id = 0,
+                            text = "Hello, World!",
+                            position = Offset(150f, 850f),
+                            style = MemeTextStyle(
+                                font = MemeFont.SYSTEM,
+                                fontSize = 34f,
+                                color = MemeTextColor.WHITE
+                            )
+                        )
+                    )
+                ),
             )
         }
     }
