@@ -1,12 +1,15 @@
 package com.mobilecampus.mastermeme.core.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -58,7 +61,7 @@ fun SearchableHeader(
         if (isSearchActive) {
             DockedSearchBar(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .semantics { traversalIndex = 0f },
                 inputField = {
                     TextField(
@@ -105,7 +108,12 @@ fun SearchableHeader(
                     dividerColor = MaterialTheme.colorScheme.outline,
                 )
             ) {
-                content()
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                        .background(Color.Red)
+                ) {
+                    content()
+                }
             }
         } else {
             Column {

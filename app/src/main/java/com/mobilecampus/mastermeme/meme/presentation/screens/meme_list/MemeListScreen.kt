@@ -267,6 +267,7 @@ fun TemplateSelectionContent(
                     modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
                 )
                 TemplateGrid(
+                    modifier = Modifier.fillMaxSize(),
                     templates = filteredTemplates,
                     onTemplateClick = onTemplateSelected,
                     columns = 2,
@@ -278,6 +279,7 @@ fun TemplateSelectionContent(
         if (!isSearchActive) {
             Spacer(modifier = Modifier.height(16.dp))
             TemplateGrid(
+                modifier = Modifier.fillMaxSize(),
                 templates = templates,
                 onTemplateClick = onTemplateSelected,
                 columns = 2,
