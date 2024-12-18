@@ -68,17 +68,6 @@ fun AnimatedSearchableHeader(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    // Only expand after the search animation completes
-    var isExpanded by remember(isSearchActive) { mutableStateOf(true) }
-
-    // Handle expansion timing
-    LaunchedEffect(isSearchActive) {
-        if (isSearchActive) {
-            isExpanded = true
-        } else {
-            isExpanded = false
-        }
-    }
 
     Box(
         modifier = modifier.fillMaxWidth(),
@@ -130,8 +119,8 @@ fun AnimatedSearchableHeader(
                     )
                 },
                 tonalElevation = 0.dp,
-                expanded = isExpanded,
-                onExpandedChange = { isExpanded = it },
+                expanded = isSearchActive,
+                onExpandedChange = {},
                 colors = SearchBarDefaults.colors(
                     containerColor = Color.Transparent,
                     dividerColor = MaterialTheme.colorScheme.outline,
