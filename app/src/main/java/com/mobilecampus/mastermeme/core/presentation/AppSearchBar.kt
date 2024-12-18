@@ -1,5 +1,16 @@
 package com.mobilecampus.mastermeme.core.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,7 +55,7 @@ import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchableHeader(
+fun AnimatedSearchableHeader(
     isSearchActive: Boolean,
     onSearchClick: () -> Unit,
     onSearchClose: () -> Unit,
@@ -58,7 +69,11 @@ fun SearchableHeader(
     Box(
         modifier = modifier.fillMaxWidth(),
     ) {
-        if (isSearchActive) {
+        AnimatedVisibility(
+            visible = isSearchActive,
+            enter = fadeIn() + expandHorizontally(),
+            exit = fadeOut() + shrinkHorizontally()
+        ) {
             DockedSearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -93,7 +108,7 @@ fun SearchableHeader(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
                             disabledContainerColor = Color.Transparent,
-                            cursorColor = LightLavender,
+                            cursorColor = MaterialTheme.colorScheme.primary,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                         ),
@@ -110,13 +125,20 @@ fun SearchableHeader(
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize()
-                        .background(Color.Red)
                 ) {
                     content()
                 }
             }
-        } else {
-            Column {
+        }
+
+        AnimatedVisibility(
+            visible = !isSearchActive,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Column(
+                modifier = Modifier
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -142,36 +164,6 @@ fun SearchableHeader(
                     textAlign = TextAlign.Center
                 )
             }
-
         }
-    }
-}
-
-@Preview
-@Composable
-private fun AppSearchPreview() {
-    var isActive by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-
-    MasterMemeTheme {
-        Column(
-            modifier = Modifier.systemBarsPadding(),
-        ) {
-            SearchableHeader(
-                isSearchActive = isActive,
-                onSearchClick = {
-                    isActive = true
-                },
-                onSearchClose = {
-                    isActive = false
-                },
-                onSearchQueryChanged = {
-                    searchQuery = it
-                },
-                searchQuery = searchQuery
-            ) {}
-        }
-
-
     }
 }

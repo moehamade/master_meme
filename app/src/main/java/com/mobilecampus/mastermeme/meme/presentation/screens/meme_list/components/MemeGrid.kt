@@ -1,9 +1,13 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
@@ -20,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -30,17 +35,24 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.mobilecampus.mastermeme.core.presentation.design_system.RoundedCheckbox
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
+import kotlinx.coroutines.delay
 
 
 // Extension function for template grids
@@ -100,7 +112,7 @@ fun LazyGridScope.userMemeItems(
 
 
 @Composable
-fun TemplateGrid(
+fun AnimatedTemplateGrid(
     templates: List<MemeItem.Template>,
     onTemplateClick: (MemeItem.Template) -> Unit,
     modifier: Modifier = Modifier,
@@ -115,11 +127,17 @@ fun TemplateGrid(
         horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         verticalArrangement = Arrangement.spacedBy(itemSpacing)
     ) {
-        templateItems(
-            templates = templates,
-            onTemplateClick = onTemplateClick,
-            itemSpacing = itemSpacing
-        )
+        itemsIndexed(
+            items = templates,
+            key = { _, template -> template.resourceId }
+        ) { index, template ->
+            AnimatedTemplateCard(
+                template = template,
+                onClick = onTemplateClick,
+                index = index,
+                modifier = Modifier.padding(itemSpacing)
+            )
+        }
     }
 }
 
@@ -190,6 +208,41 @@ private fun MemeCardBase(
         ) {
             content()
         }
+    }
+}
+
+@Composable
+fun AnimatedTemplateCard(
+    template: MemeItem.Template,
+    onClick: (MemeItem.Template) -> Unit,
+    index: Int,
+    modifier: Modifier = Modifier
+) {
+    var isVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        delay(index * 50L) // Stagger the animations
+        isVisible = true
+    }
+
+    AnimatedVisibility(
+        visible = isVisible,
+        enter = fadeIn() + expandIn(
+            expandFrom = Alignment.TopStart,
+            initialSize = { IntSize(0, 0) }
+        ),
+        modifier = modifier
+    ) {
+        TemplateCard(
+            template = template,
+            onClick = onClick,
+            modifier = Modifier.scale(
+                animateFloatAsState(
+                    targetValue = if (isVisible) 1f else 0.8f,
+                    label = "scale"
+                ).value
+            )
+        )
     }
 }
 

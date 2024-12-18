@@ -41,11 +41,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mobilecampus.mastermeme.R
-import com.mobilecampus.mastermeme.core.presentation.SearchableHeader
+import com.mobilecampus.mastermeme.core.presentation.AnimatedSearchableHeader
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.AnimatedTemplateGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
-import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.TemplateGrid
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.UserMemeGrid
 import com.mobilecampus.mastermeme.ui.theme.White
 import org.koin.androidx.compose.koinViewModel
@@ -225,7 +225,6 @@ fun MemeListScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TemplateSelectionContent(
     templates: List<MemeItem.Template>,
@@ -241,7 +240,7 @@ fun TemplateSelectionContent(
             .padding(16.dp)
             .imePadding()
     ) {
-        SearchableHeader(
+        AnimatedSearchableHeader(
             isSearchActive = isSearchActive,
             onSearchClick = {
                 isSearchActive = true
@@ -266,7 +265,7 @@ fun TemplateSelectionContent(
                     ),
                     modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
                 )
-                TemplateGrid(
+                AnimatedTemplateGrid(
                     modifier = Modifier.fillMaxSize(),
                     templates = filteredTemplates,
                     onTemplateClick = onTemplateSelected,
@@ -278,7 +277,7 @@ fun TemplateSelectionContent(
 
         if (!isSearchActive) {
             Spacer(modifier = Modifier.height(16.dp))
-            TemplateGrid(
+            AnimatedTemplateGrid(
                 modifier = Modifier.fillMaxSize(),
                 templates = templates,
                 onTemplateClick = onTemplateSelected,
@@ -288,6 +287,7 @@ fun TemplateSelectionContent(
         }
     }
 }
+
 
 @Composable
 fun EmptyMemeListState(modifier: Modifier) {
