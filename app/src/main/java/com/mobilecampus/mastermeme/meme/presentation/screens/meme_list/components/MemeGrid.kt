@@ -2,10 +2,12 @@ package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.componen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -134,7 +136,6 @@ fun AnimatedTemplateGrid(
             AnimatedTemplateCard(
                 template = template,
                 onClick = onTemplateClick,
-                index = index,
                 modifier = Modifier.padding(itemSpacing)
             )
         }
@@ -215,35 +216,22 @@ private fun MemeCardBase(
 fun AnimatedTemplateCard(
     template: MemeItem.Template,
     onClick: (MemeItem.Template) -> Unit,
-    index: Int,
     modifier: Modifier = Modifier
 ) {
-    var isVisible by remember { mutableStateOf(false) }
+    val scale = remember { Animatable(0.8f) }
 
     LaunchedEffect(Unit) {
-        delay(index * 50L) // Stagger the animations
-        isVisible = true
-    }
-
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn() + expandIn(
-            expandFrom = Alignment.TopStart,
-            initialSize = { IntSize(0, 0) }
-        ),
-        modifier = modifier
-    ) {
-        TemplateCard(
-            template = template,
-            onClick = onClick,
-            modifier = Modifier.scale(
-                animateFloatAsState(
-                    targetValue = if (isVisible) 1f else 0.8f,
-                    label = "scale"
-                ).value
-            )
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(300)
         )
     }
+
+    TemplateCard(
+        template = template,
+        onClick = onClick,
+        modifier = modifier.scale(scale.value)
+    )
 }
 
 // Specialized component for template memes
