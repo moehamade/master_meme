@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -74,7 +75,7 @@ fun AnimatedSearchableHeader(
     ) {
         AnimatedVisibility(
             visible = isSearchActive,
-            enter = fadeIn() ,
+            enter = fadeIn() + slideInHorizontally(),
             exit = fadeOut() + fadeOut()
         ) {
             DockedSearchBar(
