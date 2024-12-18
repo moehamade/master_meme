@@ -4,30 +4,27 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -183,18 +180,29 @@ fun MemeListScreen(
         }
 
         if (state.isBottomSheetVisible) {
+            var isSearchActive by remember { mutableStateOf(false) }
+
+            val sheetState = rememberModalBottomSheetState(
+                skipPartiallyExpanded = isSearchActive // Skip partial only when searching
+            )
+
             ModalBottomSheet(
                 onDismissRequest = {
                     onAction(MemeListAction.SetBottomSheetVisibility(false))
                 },
-                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+                sheetState = sheetState,
+                contentWindowInsets = { WindowInsets(0) },
+                properties = ModalBottomSheetProperties(
+                    shouldDismissOnBackPress = true,
+                )
             ) {
                 TemplateSelectionContent(
                     templates = state.filteredTemplates,
                     onTemplateSelected = { template ->
                         onAction(MemeListAction.SetBottomSheetVisibility(false))
                         onAction(MemeListAction.OpenTemplateEditor(template.resourceId))
-                    }
+                    },
+                    onSearchActiveChange = { isSearchActive = it }
                 )
             }
         }
@@ -217,45 +225,65 @@ fun MemeListScreen(
     }
 }
 
-// Template bottom sheet content
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TemplateSelectionContent(
+fun TemplateSelectionContent(
     templates: List<MemeItem.Template>,
-    onTemplateSelected: (MemeItem.Template) -> Unit
+    onTemplateSelected: (MemeItem.Template) -> Unit,
+    onSearchActiveChange: (Boolean) -> Unit
 ) {
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            .imePadding()
     ) {
         SearchableHeader(
             isSearchActive = isSearchActive,
             onSearchClick = {
                 isSearchActive = true
+                onSearchActiveChange(true)
             },
             onSearchClose = {
                 isSearchActive = false
+                searchQuery = ""
+                onSearchActiveChange(false)
             },
-            onSearchQueryChanged = {
-                searchQuery = it
-            },
+            onSearchQueryChanged = { searchQuery = it },
             searchQuery = searchQuery
-        )
-        Text(
-            text = stringResource(R.string.meme_list_choose_meme_description),
-            modifier = Modifier.padding(vertical = 32.dp),
-            style = MaterialTheme.typography.bodySmall,
-            textAlign = TextAlign.Center
-        )
+        ) {
+            if (searchQuery.isNotEmpty()) {
+                val filteredTemplates = templates.filter { template ->
+                    template.description?.contains(searchQuery, ignoreCase = true) == true
+                }
+                Text(
+                    "${filteredTemplates.size} templates",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = MaterialTheme.colorScheme.outline
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
+                )
+                TemplateGrid(
+                    templates = filteredTemplates,
+                    onTemplateClick = onTemplateSelected,
+                    columns = 2,
+                    contentPadding = PaddingValues(0.dp)
+                )
+            }
+        }
 
-        TemplateGrid(
-            templates = templates,
-            onTemplateClick = onTemplateSelected,
-            columns = 2,
-            contentPadding = PaddingValues(0.dp)
-        )
+        if (!isSearchActive) {
+            Spacer(modifier = Modifier.height(16.dp))
+            TemplateGrid(
+                templates = templates,
+                onTemplateClick = onTemplateSelected,
+                columns = 2,
+                contentPadding = PaddingValues(0.dp)
+            )
+        }
     }
 }
 
@@ -309,7 +337,10 @@ fun DeleteMemesDialog(
                     contentColor = MaterialTheme.colorScheme.surfaceDim
                 )
             ) {
-                Text("Delete",style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surfaceDim))
+                Text(
+                    "Delete",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surfaceDim)
+                )
             }
         },
         dismissButton = {
@@ -319,7 +350,10 @@ fun DeleteMemesDialog(
 
                 )
             ) {
-                Text("Cancel", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surfaceDim))
+                Text(
+                    "Cancel",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surfaceDim)
+                )
             }
         }
     )
