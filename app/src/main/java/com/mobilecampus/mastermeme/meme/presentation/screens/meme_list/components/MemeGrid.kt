@@ -218,9 +218,12 @@ fun AnimatedTemplateCard(
     onClick: (MemeItem.Template) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scale = remember { Animatable(0.8f) }
+    // Use remember with a key to persist the Animatable across recompositions
+    val scale = remember(template.resourceId) { Animatable(0.8f) }
 
-    LaunchedEffect(Unit) {
+    // Only animate when the card is first created
+    LaunchedEffect(template.resourceId) {
+        scale.snapTo(0.8f)
         scale.animateTo(
             targetValue = 1f,
             animationSpec = tween(300)

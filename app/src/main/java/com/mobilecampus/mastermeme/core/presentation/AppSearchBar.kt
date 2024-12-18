@@ -1,11 +1,13 @@
 package com.mobilecampus.mastermeme.core.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandIn
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -36,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.ui.theme.LightLavender
 import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,15 +68,25 @@ fun AnimatedSearchableHeader(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    var isExpanded by remember { mutableStateOf(true) }
+    // Only expand after the search animation completes
+    var isExpanded by remember(isSearchActive) { mutableStateOf(true) }
+
+    // Handle expansion timing
+    LaunchedEffect(isSearchActive) {
+        if (isSearchActive) {
+            isExpanded = true
+        } else {
+            isExpanded = false
+        }
+    }
 
     Box(
         modifier = modifier.fillMaxWidth(),
     ) {
         AnimatedVisibility(
             visible = isSearchActive,
-            enter = fadeIn() + expandHorizontally(),
-            exit = fadeOut() + shrinkHorizontally()
+            enter = fadeIn() ,
+            exit = fadeOut() + fadeOut()
         ) {
             DockedSearchBar(
                 modifier = Modifier

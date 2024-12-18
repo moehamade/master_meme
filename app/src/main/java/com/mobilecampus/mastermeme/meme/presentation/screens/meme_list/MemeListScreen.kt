@@ -1,5 +1,16 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -254,36 +265,57 @@ fun TemplateSelectionContent(
             onSearchQueryChanged = { searchQuery = it },
             searchQuery = searchQuery
         ) {
-            if (searchQuery.isNotEmpty()) {
+            BackHandler {}
+            AnimatedVisibility(
+                visible = searchQuery.isNotEmpty(),
+                enter = fadeIn(
+                    animationSpec = tween(150, easing = FastOutSlowInEasing)
+                ),
+                exit = fadeOut(
+                    animationSpec = tween(150, easing = FastOutSlowInEasing)
+                )
+            ) {
                 val filteredTemplates = templates.filter { template ->
                     template.description?.contains(searchQuery, ignoreCase = true) == true
                 }
-                Text(
-                    "${filteredTemplates.size} templates",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = MaterialTheme.colorScheme.outline
-                    ),
-                    modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
-                )
+                Column {
+                    Text(
+                        "${filteredTemplates.size} templates",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.outline
+                        ),
+                        modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
+                    )
+                    AnimatedTemplateGrid(
+                        modifier = Modifier.fillMaxSize(),
+                        templates = filteredTemplates,
+                        onTemplateClick = onTemplateSelected,
+                        columns = 2,
+                        contentPadding = PaddingValues(0.dp)
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = !isSearchActive,
+            enter = fadeIn(
+                animationSpec = tween(150, easing = FastOutSlowInEasing)
+            ),
+            exit = fadeOut(
+                animationSpec = tween(150, easing = FastOutSlowInEasing)
+            ),
+        ) {
+            Column {
+                Spacer(modifier = Modifier.height(16.dp))
                 AnimatedTemplateGrid(
-                    modifier = Modifier.fillMaxSize(),
-                    templates = filteredTemplates,
+                    modifier = Modifier,
+                    templates = templates,
                     onTemplateClick = onTemplateSelected,
                     columns = 2,
                     contentPadding = PaddingValues(0.dp)
                 )
             }
-        }
-
-        if (!isSearchActive) {
-            Spacer(modifier = Modifier.height(16.dp))
-            AnimatedTemplateGrid(
-                modifier = Modifier.fillMaxSize(),
-                templates = templates,
-                onTemplateClick = onTemplateSelected,
-                columns = 2,
-                contentPadding = PaddingValues(0.dp)
-            )
         }
     }
 }
