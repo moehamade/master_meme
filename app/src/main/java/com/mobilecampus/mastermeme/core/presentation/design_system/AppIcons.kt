@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import com.mobilecampus.mastermeme.R
 
 object AppIcons {
@@ -11,6 +12,14 @@ object AppIcons {
     val add: ImageVector
         @Composable
         get() = Icons.Outlined.Add
+
+    val undo: ImageVector
+        @Composable
+        get() = ImageVector.vectorResource(R.drawable.icon_undo)
+
+    val redo: ImageVector
+        @Composable
+        get() = ImageVector.vectorResource(R.drawable.icon_redo)
 
     val meme: Array<Int> by lazy {
         Array(50) { index ->

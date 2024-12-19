@@ -16,7 +16,6 @@ fun MasterMemeApp() {
                     navController = rememberNavController()
                 )
             }
-
         }
     }
 }

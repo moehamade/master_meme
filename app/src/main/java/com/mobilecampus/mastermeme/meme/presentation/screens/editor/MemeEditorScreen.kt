@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -37,6 +36,7 @@ import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.AppSlider
+import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DefaultEditorView
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DraggableTextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.EditTextDialog
 import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
@@ -118,9 +118,7 @@ fun MemeEditorScreen(
         }
 
         Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp),
+            modifier = Modifier.align(Alignment.BottomCenter),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // keep track of previously selected textbox, so we reset AppSlider positions
@@ -170,14 +168,13 @@ fun MemeEditorScreen(
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { onAction(MemeEditorAction.AddTextBox) }) {
-                    Text("Add Text Box")
-                }
-                Button(onClick = { onAction(MemeEditorAction.SaveMeme(resId)) }) {
-                    Text("Save Meme")
-                }
-            }
+            DefaultEditorView(
+                modifier = Modifier.fillMaxWidth(),
+                undo = { onAction(MemeEditorAction.Undo) },
+                redo = { onAction(MemeEditorAction.Redo) },
+                addTextBox = { onAction(MemeEditorAction.AddTextBox) },
+                saveMeme = { onAction(MemeEditorAction.SaveMeme(resId)) },
+            )
         }
 
         if (state.showEditDialog && state.currentEditingTextBox != null) {
@@ -189,6 +186,7 @@ fun MemeEditorScreen(
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

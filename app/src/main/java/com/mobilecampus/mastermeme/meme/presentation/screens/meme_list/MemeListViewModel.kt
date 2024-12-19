@@ -1,5 +1,6 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
+import androidx.annotation.IdRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
@@ -71,13 +72,11 @@ sealed interface MemeListAction {
     data class SetDeleteDialogVisible(val visible: Boolean) : MemeListAction
 
     object ShareSelectedMemes : MemeListAction
-
-
 }
 
 // Contains all events that can be emitted by the ViewModel
 sealed interface MemeListScreenEvent {
-    data class NavigateToEditor(val id: Int) : MemeListScreenEvent
+    data class NavigateToEditor(@IdRes val id: Int) : MemeListScreenEvent
     data class ShowError(val message: String) : MemeListScreenEvent
 }
 

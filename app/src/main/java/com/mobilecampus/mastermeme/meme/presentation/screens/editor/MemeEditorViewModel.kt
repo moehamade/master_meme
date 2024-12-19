@@ -27,11 +27,15 @@ data class MemeEditorState(
 )
 
 sealed class MemeEditorAction {
+    // Default Editor actions
+    data object Undo : MemeEditorAction()
+    data object Redo : MemeEditorAction()
     data object AddTextBox : MemeEditorAction()
-    data object ToggleFont : MemeEditorAction()
-    data class UpdateTextColor(val color: MemeTextColor): MemeEditorAction()
-    data class UpdateFontSize(val newFontSize: Float): MemeEditorAction()
     data class SaveMeme(@DrawableRes val resId: Int) : MemeEditorAction()
+
+    data object ToggleFont : MemeEditorAction()
+    data class UpdateTextColor(val color: MemeTextColor) : MemeEditorAction()
+    data class UpdateFontSize(val newFontSize: Float) : MemeEditorAction()
 
     data class StartEditingText(val textBox: TextBox) : MemeEditorAction()
     data class ConfirmTextChange(val newText: String) : MemeEditorAction()
@@ -44,7 +48,7 @@ sealed class MemeEditorAction {
 }
 
 sealed interface MemeEditorEvent {
-    data class OnSaveResult(val success: Boolean, val filePath: String? = null): MemeEditorEvent
+    data class OnSaveResult(val success: Boolean, val filePath: String? = null) : MemeEditorEvent
 }
 
 class MemeEditorViewModel(
@@ -62,17 +66,24 @@ class MemeEditorViewModel(
 
     fun onAction(event: MemeEditorAction) {
         when (event) {
+            is MemeEditorAction.Redo -> {} // TODO
+            is MemeEditorAction.Undo -> {} // TODO
             is MemeEditorAction.AddTextBox -> addTextBox()
+            is MemeEditorAction.SaveMeme -> saveMeme(event.resId)
+
             is MemeEditorAction.ToggleFont -> toggleFont()
             is MemeEditorAction.UpdateFontSize -> setFontSize(event.newFontSize)
             is MemeEditorAction.UpdateTextColor -> setTextColor(event.color)
-            is MemeEditorAction.SaveMeme -> saveMeme(event.resId)
 
             is MemeEditorAction.StartEditingText -> startEditing(event.textBox)
             is MemeEditorAction.ConfirmTextChange -> confirmTextChange(event.newText)
             MemeEditorAction.CancelEditing -> cancelEditing()
 
-            is MemeEditorAction.UpdateTextBoxPosition -> updateTextBoxPosition(event.id, event.newPos)
+            is MemeEditorAction.UpdateTextBoxPosition -> updateTextBoxPosition(
+                event.id,
+                event.newPos
+            )
+
             is MemeEditorAction.DeleteTextBox -> deleteTextBox(event.id)
             is MemeEditorAction.SelectTextBox -> selectTextBox(event.id)
             is MemeEditorAction.UpdateImagePosition -> updateImagePosition(event.offset, event.size)
@@ -82,7 +93,11 @@ class MemeEditorViewModel(
     private fun addTextBox() {
         if (state.imageSize.width != 0 && state.imageSize.height != 0) {
             val text = "TAP TWICE TO EDIT"
-            val (initialPos, textBoxSize) = measureInitialTextBoxPosition(text, 36f, state.imageSize)
+            val (initialPos, textBoxSize) = measureInitialTextBoxPosition(
+                text,
+                36f,
+                state.imageSize
+            )
             val nonOverlappingPosition = findNonOverlappingPosition(
                 textBoxes = state.textBoxes,
                 imageSize = state.imageSize,
@@ -107,7 +122,8 @@ class MemeEditorViewModel(
         val index = state.textBoxes.indexOfFirst { it.id == selected.id }
         if (index != -1) {
             val currentStyle = state.textBoxes[index].style
-            val newFont = if (currentStyle.font == MemeFont.IMPACT) MemeFont.SYSTEM else MemeFont.IMPACT
+            val newFont =
+                if (currentStyle.font == MemeFont.IMPACT) MemeFont.SYSTEM else MemeFont.IMPACT
             val updated = state.textBoxes.toMutableList().apply {
                 this[index] = this[index].copy(style = currentStyle.copy(font = newFont))
             }
@@ -147,7 +163,11 @@ class MemeEditorViewModel(
         if (index != -1) {
             val updated = state.textBoxes.toMutableList()
             updated[index] = updated[index].copy(text = newText)
-            _state = _state.copy(textBoxes = updated, currentEditingTextBox = null, showEditDialog = false)
+            _state = _state.copy(
+                textBoxes = updated,
+                currentEditingTextBox = null,
+                showEditDialog = false
+            )
         }
     }
 
@@ -211,14 +231,20 @@ private fun measureInitialTextBoxPosition(
     val initialCenterX = (imageSize.width - approximateWidth) / 2f
     val initialCenterY = (imageSize.height - approximateHeight) / 2f
 
-    return Offset(initialCenterX, initialCenterY) to androidx.compose.ui.geometry.Size(approximateWidth, approximateHeight)
+    return Offset(initialCenterX, initialCenterY) to androidx.compose.ui.geometry.Size(
+        approximateWidth,
+        approximateHeight
+    )
 }
 
 private fun findNonOverlappingPosition(
     textBoxes: List<TextBox>,
     imageSize: IntSize,
     initialPosition: Offset,
-    approximateTextBoxSize: androidx.compose.ui.geometry.Size = androidx.compose.ui.geometry.Size(200f, 50f),
+    approximateTextBoxSize: androidx.compose.ui.geometry.Size = androidx.compose.ui.geometry.Size(
+        200f,
+        50f
+    ),
     maxAttempts: Int = 20,
     offsetStep: Float = 20f
 ): Offset {
