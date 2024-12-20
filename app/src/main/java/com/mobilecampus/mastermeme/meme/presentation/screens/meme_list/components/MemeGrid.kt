@@ -260,7 +260,6 @@ fun UserMemeGrid(
 
     LaunchedEffect(sortOption) {
         scope.launch {
-            // Use scrollToItem instead of animateScrollToItem since we don't need the spring animation here
             state.scrollToItem(0)
         }
     }

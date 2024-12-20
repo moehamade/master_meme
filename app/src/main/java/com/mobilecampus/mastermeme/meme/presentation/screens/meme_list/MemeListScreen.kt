@@ -299,40 +299,6 @@ fun TemplateSelectionContent(
 }
 
 @Composable
-private fun TemplatesContent(
-    templates: List<MemeItem.Template>,
-    onTemplateSelected: (MemeItem.Template) -> Unit,
-    isSearchActive: Boolean,
-    searchQuery: String
-) {
-    Column {
-        // Show count based on search state
-        Text(
-            text = if (searchQuery.isNotEmpty()) {
-                "${templates.size} templates found"
-            } else {
-                "${templates.size} templates available"
-            },
-            style = MaterialTheme.typography.labelSmall.copy(
-                color = MaterialTheme.colorScheme.outline
-            ),
-            modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
-        )
-
-        AnimatedTemplateGrid(
-            modifier = Modifier.fillMaxSize(),
-            templates = templates,
-            onTemplateClick = onTemplateSelected,
-            columns = 2,
-            contentPadding = PaddingValues(0.dp)
-        )
-    }
-}
-
-
-
-
-@Composable
 fun EmptyMemeListState(modifier: Modifier) {
     Column(
         modifier = modifier,
