@@ -4,4 +4,5 @@
     <string name="meme_list_choose_meme">Choose Template</string>
     <string name="meme_list_choose_meme_description">Choose template for your next meme masterpiece</string>
     <string name="your_memes">Your memes</string>
+    <string name="you_will_not_be_able_to_restore_them_if_you_re_fine_with_that_press_delete">You will not be able to restore them. If you\'re fine with that, press \'Delete\'.</string>
 </resources>
