@@ -9,6 +9,7 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.util.Log
 import android.util.TypedValue
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.IntSize
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -17,6 +18,8 @@ import com.mobilecampus.mastermeme.meme.domain.data_source.MemeDataSource
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
+import com.mobilecampus.mastermeme.meme.domain.model.editor.toFillColor
+import com.mobilecampus.mastermeme.meme.domain.model.editor.toOutlineColor
 import com.mobilecampus.mastermeme.meme.domain.use_case.SaveMemeUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -167,10 +170,9 @@ private suspend fun saveMemeInternally(
         // Adjust Y position to account for text baseline
         // Android draws text from the baseline, so we need to offset by the font metrics
         val adjustedY = scaledY - paint.fontMetrics.top
-
-        // Draw text outline (black border)
+        
         paint.style = Paint.Style.STROKE
-        paint.color = Color.BLACK
+        paint.color = textBox.style.color.toOutlineColor().toArgb()
         paint.strokeWidth = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             4f,  // 4dp stroke width for outline
@@ -178,9 +180,8 @@ private suspend fun saveMemeInternally(
         )
         canvas.drawText(textBox.text, x, adjustedY, paint)
 
-        // Draw text fill (white interior)
         paint.style = Paint.Style.FILL
-        paint.color = Color.WHITE
+        paint.color = textBox.style.color.toFillColor().toArgb()
         canvas.drawText(textBox.text, x, adjustedY, paint)
     }
 
