@@ -75,7 +75,6 @@ class MemeListViewModel(
     private val shareMemesUseCase: ShareMemesUseCase,
 ) : ViewModel() {
     private val sortOptionFlow = MutableStateFlow(SortOption.FAVORITES_FIRST)
-    private val searchQueryFlow = MutableStateFlow("")
 
     private val _state = MutableStateFlow(MemeListScreenState())
     val state = _state
@@ -127,34 +126,28 @@ class MemeListViewModel(
             is MemeListAction.ToggleMemeSelection -> toggleMemeSelection(action.memeId)
             is MemeListAction.DisableSelectionMode -> disableSelectionMode()
             is MemeListAction.ClearSelection -> clearSelection()
-            is MemeListAction.SetBottomSheetVisibility -> {
-                if (!action.visible) {
-                    // Reset search state when closing bottom sheet
-                    _state.update {
-                        it.copy(
-                            isBottomSheetVisible = false,
-                            isSearchActive = false,
-                            searchQuery = ""
-                        )
-                    }
-                    searchQueryFlow.value = ""
-                } else {
-                    _state.update { it.copy(isBottomSheetVisible = true) }
-                }
-            }
+            is MemeListAction.SetBottomSheetVisibility -> setBottomSheetVisibility(action.visible)
             is MemeListAction.UpdateSortOption -> updateSortOption(action.option)
             is MemeListAction.ShareSelectedMemes -> shareSelectedMemes()
             is MemeListAction.SetSearchActive -> setSearchActive(action.active)
-            is MemeListAction.UpdateSearchQuery -> {
-                searchQueryFlow.value = action.query
-                _state.update { it.copy(searchQuery = action.query)}
-            }
+            is MemeListAction.UpdateSearchQuery ->  updateSearchQuery(action.query)
+        }
+    }
+
+    private fun updateSearchQuery(query: String) {
+        _state.update { it.copy(searchQuery = query) }
+    }
+
+    private fun setBottomSheetVisibility(visible: Boolean) {
+        if(!visible) {
+            _state.update { it.copy(isBottomSheetVisible = false, isSearchActive = false, searchQuery = "") }
+        } else {
+            _state.update { it.copy(isBottomSheetVisible = true) }
         }
     }
 
     private fun setSearchActive(active: Boolean) {
         if (!active) {
-            searchQueryFlow.value = ""
             _state.update { it.copy(isSearchActive = false, searchQuery = "") }
         } else {
             _state.update { it.copy(isSearchActive = true) }
