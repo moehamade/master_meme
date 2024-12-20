@@ -1,29 +1,18 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
@@ -43,7 +32,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,7 +49,6 @@ import com.mobilecampus.mastermeme.core.presentation.AnimatedSearchableHeader
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.AnimatedTemplateGrid
-import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.AnimationSpecs
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.UserMemeGrid
 import com.mobilecampus.mastermeme.ui.theme.White
@@ -105,6 +92,14 @@ fun MemeListScreen(
     var isDropdownMenuExpanded by remember { mutableStateOf(false) }
     val gridScrollState = rememberLazyGridState()
 
+    var test by remember { mutableStateOf(false) }
+    // Initialize sheet state with skipPartiallyExpanded as false to allow both states
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = state.isSearchActive
+    )
+
+
+
     Scaffold(
         topBar = {
             MemeListTopAppBar(
@@ -114,16 +109,12 @@ fun MemeListScreen(
                 onDropDownMenuClick = { isDropdownMenuExpanded = true },
                 onDropdownMenuDismiss = { isDropdownMenuExpanded = false },
                 onCancelSelection = { onAction(MemeListAction.DisableSelectionMode) },
-                onDeleteClick = {
-                    onAction(MemeListAction.SetDeleteDialogVisible(true))
-                },
+                onDeleteClick = { onAction(MemeListAction.SetDeleteDialogVisible(true)) },
                 onDropdownMenuItemClick = { option ->
                     onAction(MemeListAction.UpdateSortOption(option))
                     isDropdownMenuExpanded = false
                 },
-                onShareClick = {
-                    onAction(MemeListAction.ShareSelectedMemes)
-                }
+                onShareClick = { onAction(MemeListAction.ShareSelectedMemes) }
             )
         },
         floatingActionButton = {
@@ -136,130 +127,121 @@ fun MemeListScreen(
             }
         }
     ) { paddingValues ->
-        when (state.loadingState) {
-            LoadingState.Loading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .fillMaxSize()
-                        .wrapContentSize()
-                )
-            }
-
-            is LoadingState.Error -> {
-                // You can create a custom error state component
-                Text(
-                    text = state.loadingState.message,
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .fillMaxSize()
-                        .wrapContentSize()
-                )
-            }
-
-            LoadingState.Success -> {
-                if (state.isEmpty) {
-                    EmptyMemeListState(
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (state.loadingState) {
+                LoadingState.Loading -> {
+                    CircularProgressIndicator(
                         modifier = Modifier
                             .padding(paddingValues)
                             .fillMaxSize()
+                            .wrapContentSize()
                     )
-                } else {
-                    UserMemeGrid(
-                        memes = state.memes,
-                        state = gridScrollState,
-                        onMemeTap = { meme ->
-                            if (state.isSelectionModeActive) {
-                                onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
-                            } else {
-                                // onAction(MemeListAction.OpenMemeEditor(meme.id!!))
-                            }
-                        },
-                        onFavoriteToggle = { meme ->
-                            onAction(MemeListAction.ToggleFavorite(meme))
-                        },
+                }
+                is LoadingState.Error -> {
+                    Text(
+                        text = state.loadingState.message,
                         modifier = Modifier
-                            .padding(
+                            .padding(paddingValues)
+                            .fillMaxSize()
+                            .wrapContentSize()
+                    )
+                }
+                LoadingState.Success -> {
+                    if (state.isEmpty) {
+                        EmptyMemeListState(
+                            modifier = Modifier
+                                .padding(paddingValues)
+                                .fillMaxSize()
+                        )
+                    } else {
+                        UserMemeGrid(
+                            memes = state.memes,
+                            state = gridScrollState,
+                            onMemeTap = { meme ->
+                                if (state.isSelectionModeActive) {
+                                    onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
+                                }
+                            },
+                            onFavoriteToggle = { meme ->
+                                onAction(MemeListAction.ToggleFavorite(meme))
+                            },
+                            modifier = Modifier.padding(
                                 start = paddingValues.calculateLeftPadding(LayoutDirection.Ltr),
                                 end = paddingValues.calculateRightPadding(LayoutDirection.Ltr),
                                 top = paddingValues.calculateTopPadding(),
-                            )
-                            .fillMaxSize(),
-                        isSelectionMode = state.isSelectionModeActive,
-                        selectedMemes = state.selectedMemesIds,
-                        onSelectionToggle = { meme, isSelected ->
-                            onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
+                            ),
+                            isSelectionMode = state.isSelectionModeActive,
+                            selectedMemes = state.selectedMemesIds,
+                            onSelectionToggle = { meme, _ ->
+                                onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
+                            },
+                            sortOption = state.sortOption
+                        )
+                    }
+                }
+            }
+
+            if (state.isBottomSheetVisible) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        onAction(MemeListAction.SetBottomSheetVisibility(false))
+                    },
+                    sheetState = sheetState,
+                    contentWindowInsets = { WindowInsets(0) },
+                    properties = ModalBottomSheetProperties(
+                        shouldDismissOnBackPress = true
+                    )
+                ) {
+                    TemplateSelectionContent(
+                        templates = state.filteredTemplates,
+                        onTemplateSelected = { template ->
+                            onAction(MemeListAction.SetBottomSheetVisibility(false))
+                            onAction(MemeListAction.OpenTemplateEditor(template.resourceId))
                         },
-                        sortOption = state.sortOption // Add this parameter
+                        isSearchActive = state.isSearchActive,
+                        searchQuery = state.searchQuery,
+                        onSearchActiveChange = { isActive ->
+                            onAction(MemeListAction.SetSearchActive(isActive))
+                        },
+                        onSearchQueryChange = { query ->
+                            onAction(MemeListAction.UpdateSearchQuery(query))
+                        }
                     )
                 }
             }
-        }
 
-        if (state.isBottomSheetVisible) {
-            var isSearchActive by remember { mutableStateOf(false) }
-
-            val sheetState = rememberModalBottomSheetState(
-                skipPartiallyExpanded = isSearchActive // Skip partial only when searching
-            )
-
-            ModalBottomSheet(
-                onDismissRequest = {
-                    onAction(MemeListAction.SetBottomSheetVisibility(false))
-                },
-                sheetState = sheetState,
-                contentWindowInsets = { WindowInsets(0) },
-                properties = ModalBottomSheetProperties(
-                    shouldDismissOnBackPress = true,
-                )
+            AnimatedVisibility(
+                visible = state.isDeleteDialogVisible,
+                enter = fadeIn(),
+                exit = fadeOut()
             ) {
-                TemplateSelectionContent(
-                    templates = state.filteredTemplates,
-                    onTemplateSelected = { template ->
-                        onAction(MemeListAction.SetBottomSheetVisibility(false))
-                        onAction(MemeListAction.OpenTemplateEditor(template.resourceId))
+                DeleteMemesDialog(
+                    selectedCount = state.selectedMemesCount,
+                    onConfirm = {
+                        onAction(MemeListAction.DeleteSelectedMemes(state.selectedMemesIds))
                     },
-                    onSearchActiveChange = { isSearchActive = it }
+                    onCancel = {
+                        onAction(MemeListAction.SetDeleteDialogVisible(false))
+                    },
+                    onDismiss = {
+                        onAction(MemeListAction.SetDeleteDialogVisible(false))
+                        onAction(MemeListAction.DisableSelectionMode)
+                    }
                 )
             }
-        }
-
-        if (state.isDeleteDialogVisible) {
-            DeleteMemesDialog(
-                selectedCount = state.selectedMemesCount,
-                onConfirm = {
-                    onAction(MemeListAction.DeleteSelectedMemes(state.selectedMemesIds))
-                },
-                onCancel = {
-                    onAction(MemeListAction.SetDeleteDialogVisible(false))
-                },
-                onDismiss = {
-                    onAction(MemeListAction.SetDeleteDialogVisible(false))
-                    onAction(MemeListAction.DisableSelectionMode)
-                }
-            )
         }
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun TemplateSelectionContent(
     templates: List<MemeItem.Template>,
     onTemplateSelected: (MemeItem.Template) -> Unit,
-    onSearchActiveChange: (Boolean) -> Unit
+    isSearchActive: Boolean,
+    searchQuery: String,
+    onSearchActiveChange: (Boolean) -> Unit,
+    onSearchQueryChange: (String) -> Unit
 ) {
-    var isSearchActive by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-
-    val filteredTemplates by remember(searchQuery, templates) {
-        derivedStateOf {
-            templates.filter { template ->
-                template.description?.contains(searchQuery, ignoreCase = true) == true
-            }
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -268,74 +250,84 @@ fun TemplateSelectionContent(
     ) {
         AnimatedSearchableHeader(
             isSearchActive = isSearchActive,
-            onSearchClick = {
-                isSearchActive = true
-                onSearchActiveChange(true)
-            },
+            onSearchClick = { onSearchActiveChange(true) },
             onSearchClose = {
-                isSearchActive = false
-                searchQuery = ""
                 onSearchActiveChange(false)
+                onSearchQueryChange("")
             },
-            onSearchQueryChanged = { searchQuery = it },
-            searchQuery = searchQuery
-        ) {
-            AnimatedContent(
-                targetState = searchQuery.isNotEmpty(),
-                transitionSpec = {
-                    fadeIn(AnimationSpecs.fadeIn).togetherWith(fadeOut(AnimationSpecs.fadeOut))
+            onSearchQueryChanged = onSearchQueryChange,
+            searchQuery = searchQuery,
+            content = {
+                AnimatedVisibility(
+                    visible = templates.isNotEmpty(),
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    Column {
+                        Text(
+                            text = if (searchQuery.isNotEmpty()) {
+                                "${templates.size} templates found"
+                            } else {
+                                "${templates.size} templates available"
+                            },
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.outline
+                            ),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        AnimatedTemplateGrid(
+                            modifier = Modifier.fillMaxSize(),
+                            templates = templates,
+                            onTemplateClick = onTemplateSelected,
+                            columns = 2,
+                            contentPadding = PaddingValues(0.dp)
+                        )
+                    }
                 }
-            ) { isSearching ->
-                if (isSearching) {
-                    SearchResultsContent(
-                        filteredTemplates = filteredTemplates,
-                        onTemplateSelected = onTemplateSelected
-                    )
-                } else {
-                    DefaultContent(
-                        templates = templates,
-                        onTemplateSelected = onTemplateSelected,
-                        isSearchActive = isSearchActive
-                    )
+
+                AnimatedVisibility(
+                    visible = templates.isEmpty(),
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
-        }
+        )
     }
 }
 
 @Composable
-private fun SearchResultsContent(
-    filteredTemplates: List<MemeItem.Template>,
-    onTemplateSelected: (MemeItem.Template) -> Unit
+private fun TemplatesContent(
+    templates: List<MemeItem.Template>,
+    onTemplateSelected: (MemeItem.Template) -> Unit,
+    isSearchActive: Boolean,
+    searchQuery: String
 ) {
     Column {
+        // Show count based on search state
         Text(
-            "${filteredTemplates.size} templates",
+            text = if (searchQuery.isNotEmpty()) {
+                "${templates.size} templates found"
+            } else {
+                "${templates.size} templates available"
+            },
             style = MaterialTheme.typography.labelSmall.copy(
                 color = MaterialTheme.colorScheme.outline
             ),
             modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
         )
+
         AnimatedTemplateGrid(
             modifier = Modifier.fillMaxSize(),
-            templates = filteredTemplates,
-            onTemplateClick = onTemplateSelected,
-            columns = 2,
-            contentPadding = PaddingValues(0.dp)
-        )
-    }
-}
-
-@Composable
-private fun DefaultContent(
-    templates: List<MemeItem.Template>,
-    onTemplateSelected: (MemeItem.Template) -> Unit,
-    isSearchActive: Boolean
-) {
-    Column {
-        Spacer(modifier = Modifier.height(16.dp))
-        AnimatedTemplateGrid(
-            modifier = Modifier,
             templates = templates,
             onTemplateClick = onTemplateSelected,
             columns = 2,
@@ -343,6 +335,8 @@ private fun DefaultContent(
         )
     }
 }
+
+
 
 
 @Composable
