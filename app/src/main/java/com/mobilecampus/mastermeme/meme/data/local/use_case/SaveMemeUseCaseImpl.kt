@@ -23,6 +23,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
+import kotlin.math.roundToInt
 
 class SaveMemeUseCaseImpl(
     private val context: Context,
@@ -84,120 +85,130 @@ private suspend fun saveMemeInternally(
     textBoxes: List<TextBox>,
     imageSize: IntSize
 ): String = withContext(Dispatchers.IO) {
-    // Generate unique filename for the meme
     val fileName = "meme_${UUID.randomUUID()}.jpg"
     val memeDir = context.getDir("memes", Context.MODE_PRIVATE)
     val internalFile = File(memeDir, fileName)
 
-    // Load the background image drawable
     val drawable = ContextCompat.getDrawable(context, backgroundImageResId)
         ?: throw IllegalStateException("Could not load background image drawable")
 
-    // Calculate aspect ratios to handle letterboxing
-    // Letterboxing occurs when the image's aspect ratio doesn't match the screen's aspect ratio,
-    // resulting in black bars either at the top/bottom or sides
     val backgroundAspectRatio = drawable.intrinsicWidth.toFloat() / drawable.intrinsicHeight.toFloat()
-    val screenAspectRatio = imageSize.width.toFloat() / imageSize.height.toFloat()
+    val (outputWidth, outputHeight, letterboxOffset, visibleHeight) = calculateDimensions(imageSize, backgroundAspectRatio)
 
-    // Determine the actual visible height of the image in the UI and calculate letterbox offset
-    // This is crucial for correct text positioning when the image has black bars
-    val (visibleHeight, letterboxOffset) = if (backgroundAspectRatio > screenAspectRatio) {
-        // Image is wider than screen ratio - will have letterboxing on top/bottom
-        val height = (imageSize.width / backgroundAspectRatio).toInt()
-        val offset = (imageSize.height - height) / 2f  // Distance from top of screen to actual image
-        height to offset
-    } else {
-        // Image fills height completely - no letterboxing needed
-        imageSize.height to 0f
-    }
-
-    // Create the output bitmap with dimensions that preserve the original aspect ratio
-    // We use the screen width as reference and calculate height based on the aspect ratio
-    val outputWidth = imageSize.width
-    val outputHeight = (outputWidth / backgroundAspectRatio).toInt()
-
-    // Create a new bitmap with the calculated dimensions
-    val bitmap = Bitmap.createBitmap(
-        outputWidth,
-        outputHeight,
-        Bitmap.Config.ARGB_8888
-    )
-
-    // Draw the background image onto the bitmap
+    val bitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     drawable.setBounds(0, 0, bitmap.width, bitmap.height)
     drawable.draw(canvas)
 
-    // Process each text box to be drawn on the meme
+    // Draw all text boxes
     textBoxes.forEach { textBox ->
-        // Convert SP units to pixels for text size
-        val textSizePx = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_SP,
-            textBox.style.fontSize,
-            context.resources.displayMetrics
+        drawTextBoxOnCanvas(
+            canvas = canvas,
+            context = context,
+            textBox = textBox,
+            visibleHeight = visibleHeight,
+            letterboxOffset = letterboxOffset,
+            outputHeight = outputHeight
         )
-
-        // Select the appropriate font
-        val typeface = when (textBox.style.font) {
-            MemeFont.IMPACT -> ResourcesCompat.getFont(context, R.font.impact)
-            MemeFont.SYSTEM -> Typeface.DEFAULT_BOLD
-        }
-
-        // Configure the paint object for text rendering
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            this.textSize = textSizePx
-            this.typeface = typeface
-            strokeJoin = Paint.Join.ROUND  // Smooth corners for outline
-            strokeCap = Paint.Cap.ROUND    // Smooth ends for outline
-        }
-
-        // Calculate the correct text position:
-        // 1. Start with the raw x coordinate (no adjustment needed for width)
-        // 2. Subtract letterbox offset from y to account for black bars
-        val x = textBox.position.x
-        val y = textBox.position.y - letterboxOffset
-
-        // If we have letterboxing, scale the y coordinate to match the output bitmap's dimensions
-        val scaledY = if (letterboxOffset > 0) {
-            y * (outputHeight.toFloat() / visibleHeight.toFloat())
-        } else {
-            y
-        }
-
-        // Adjust Y position to account for text baseline
-        // Android draws text from the baseline, so we need to offset by the font metrics
-        val adjustedY = scaledY - paint.fontMetrics.top
-
-        paint.style = Paint.Style.STROKE
-        paint.color = textBox.style.color.toOutlineColor().toArgb()
-        paint.strokeWidth = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            4f,  // 4dp stroke width for outline
-            context.resources.displayMetrics
-        )
-        canvas.drawText(textBox.text, x, adjustedY, paint)
-
-        paint.style = Paint.Style.FILL
-        paint.color = textBox.style.color.toFillColor().toArgb()
-        canvas.drawText(textBox.text, x, adjustedY, paint)
     }
 
-    // Save the final bitmap as a JPEG file
+    // Save the bitmap
     try {
         FileOutputStream(internalFile).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)  // 85% quality
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
         }
     } catch (e: Exception) {
-        bitmap.recycle()
         throw Exception("Failed to save meme internally: ${e.message}", e)
+    } finally {
+        bitmap.recycle()
     }
 
-    // Clean up bitmap to free memory
-    bitmap.recycle()
-
-    // Return the path where the meme was saved
     internalFile.absolutePath
 }
+
+private fun calculateDimensions(
+    imageSize: IntSize,
+    backgroundAspectRatio: Float
+): MemeDimensions {
+    val screenAspectRatio = imageSize.width.toFloat() / imageSize.height.toFloat()
+
+    // Determine offset and visible area for letterboxing
+    val (visibleHeight, letterboxOffset) = if (backgroundAspectRatio > screenAspectRatio) {
+        val height = (imageSize.width / backgroundAspectRatio).roundToInt()
+        val offset = (imageSize.height - height) / 2f
+        height to offset
+    } else {
+        imageSize.height to 0f
+    }
+
+    // The output bitmap matches the width of the screen space and adjusts height accordingly
+    val outputWidth = imageSize.width
+    val outputHeight = (outputWidth / backgroundAspectRatio).roundToInt()
+
+    return MemeDimensions(outputWidth, outputHeight, letterboxOffset, visibleHeight)
+}
+
+private fun drawTextBoxOnCanvas(
+    canvas: Canvas,
+    context: Context,
+    textBox: TextBox,
+    visibleHeight: Int,
+    letterboxOffset: Float,
+    outputHeight: Int
+) {
+    // Convert SP to pixels for font size
+    val textSizePx = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_SP,
+        textBox.style.fontSize,
+        context.resources.displayMetrics
+    )
+
+    val typeface = when (textBox.style.font) {
+        MemeFont.IMPACT -> ResourcesCompat.getFont(context, R.font.impact) ?: Typeface.DEFAULT_BOLD
+        MemeFont.SYSTEM -> Typeface.DEFAULT_BOLD
+    }
+
+    // Paint for both outline and fill
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = textSizePx
+        this.typeface = typeface
+        strokeJoin = Paint.Join.ROUND
+        strokeCap = Paint.Cap.ROUND
+    }
+
+    // Adjust coordinates for letterboxing
+    val x = textBox.position.x
+    val y = (textBox.position.y - letterboxOffset).let { adjustedY ->
+        if (letterboxOffset > 0) {
+            adjustedY * (outputHeight.toFloat() / visibleHeight.toFloat())
+        } else adjustedY
+    }
+
+    // Account for font baseline
+    val adjustedY = y - paint.fontMetrics.top
+
+    // Draw outline
+    paint.style = Paint.Style.STROKE
+    paint.color = textBox.style.color.toOutlineColor().toArgb()
+    paint.strokeWidth = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP,
+        4f,
+        context.resources.displayMetrics
+    )
+    canvas.drawText(textBox.text, x, adjustedY, paint)
+
+    // Draw fill
+    paint.style = Paint.Style.FILL
+    paint.color = textBox.style.color.toFillColor().toArgb()
+    canvas.drawText(textBox.text, x, adjustedY, paint)
+}
+
+private data class MemeDimensions(
+    val outputWidth: Int,
+    val outputHeight: Int,
+    val letterboxOffset: Float,
+    val visibleHeight: Int
+)
 
 /**
  * <TODO> Consider for your image loading usecase
