@@ -1,15 +1,14 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
@@ -37,24 +36,108 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.mobilecampus.mastermeme.core.presentation.design_system.RoundedCheckbox
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+
+// Animation specs for consistent animations across components
+object AnimationSpecs {
+    val fadeIn = tween<Float>(
+        durationMillis = 300,
+        easing = FastOutSlowInEasing
+    )
+    val fadeOut = tween<Float>(
+        durationMillis = 200,
+        easing = FastOutLinearInEasing
+    )
+    val slideIn = spring<Float>(
+        dampingRatio = Spring.DampingRatioMediumBouncy,
+        stiffness = Spring.StiffnessLow
+    )
+    val scaleIn = spring<Float>(
+        dampingRatio = Spring.DampingRatioMediumBouncy,
+        stiffness = Spring.StiffnessLow
+    )
+}
+
+// Reusable animation modifier for grid items
+fun Modifier.gridItemAnimation(
+    visible: Boolean = true,
+    index: Int
+) = composed {
+    val offsetY = remember { Animatable(if (visible) 0f else 100f) }
+    val alpha = remember { Animatable(if (visible) 1f else 0f) }
+    val scale = remember { Animatable(if (visible) 1f else 0.8f) }
+
+    LaunchedEffect(visible) {
+        launch {
+            if (visible) {
+                delay(index * 50L) // Staggered animation
+                offsetY.animateTo(
+                    targetValue = 0f,
+                    animationSpec = AnimationSpecs.slideIn
+                )
+            } else {
+                offsetY.animateTo(
+                    targetValue = 100f,
+                    animationSpec = AnimationSpecs.slideIn
+                )
+            }
+        }
+        launch {
+            if (visible) {
+                delay(index * 50L)
+                alpha.animateTo(
+                    targetValue = 1f,
+                    animationSpec = AnimationSpecs.fadeIn
+                )
+            } else {
+                alpha.animateTo(
+                    targetValue = 0f,
+                    animationSpec = AnimationSpecs.fadeOut
+                )
+            }
+        }
+        launch {
+            if (visible) {
+                delay(index * 50L)
+                scale.animateTo(
+                    targetValue = 1f,
+                    animationSpec = AnimationSpecs.scaleIn
+                )
+            } else {
+                scale.animateTo(
+                    targetValue = 0.8f,
+                    animationSpec = AnimationSpecs.scaleIn
+                )
+            }
+        }
+    }
+
+    this
+        .graphicsLayer {
+            translationY = offsetY.value
+            this.alpha = alpha.value
+            scaleX = scale.value
+            scaleY = scale.value
+        }
+}
 
 
 // Extension function for template grids
@@ -122,6 +205,12 @@ fun AnimatedTemplateGrid(
     contentPadding: PaddingValues = PaddingValues(16.dp),
     itemSpacing: Dp = 8.dp
 ) {
+    val visibleState = remember { MutableTransitionState(false) }
+
+    LaunchedEffect(Unit) {
+        visibleState.targetState = true
+    }
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         modifier = modifier,
@@ -133,14 +222,23 @@ fun AnimatedTemplateGrid(
             items = templates,
             key = { _, template -> template.resourceId }
         ) { index, template ->
-            AnimatedTemplateCard(
-                template = template,
-                onClick = onTemplateClick,
-                modifier = Modifier.padding(itemSpacing)
-            )
+            Box(
+                modifier = Modifier
+                    .gridItemAnimation(
+                        visible = visibleState.targetState,
+                        index = index
+                    )
+            ) {
+                TemplateCard(
+                    template = template,
+                    onClick = onTemplateClick,
+                    modifier = Modifier.padding(itemSpacing)
+                )
+            }
         }
     }
 }
+
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -156,11 +254,15 @@ fun UserMemeGrid(
     isSelectionMode: Boolean = false,
     selectedMemes: Set<Int> = emptySet(),
     onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit,
-    sortOption: SortOption // Add this parameter
+    sortOption: SortOption
 ) {
-    // Effect to scroll to top when sort option changes
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(sortOption) {
-        state.animateScrollToItem(0)
+        scope.launch {
+            // Use scrollToItem instead of animateScrollToItem since we don't need the spring animation here
+            state.scrollToItem(0)
+        }
     }
 
     LazyVerticalGrid(
@@ -171,15 +273,33 @@ fun UserMemeGrid(
         horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         verticalArrangement = Arrangement.spacedBy(itemSpacing)
     ) {
-        userMemeItems(
-            memes = memes,
-            onMemeClick = onMemeTap,
-            onFavoriteToggle = onFavoriteToggle,
-            isSelectionMode = isSelectionMode,
-            selectedMemes = selectedMemes,
-            onSelectionToggle = onSelectionToggle,
-            itemSpacing = itemSpacing
-        )
+        itemsIndexed(
+            items = memes,
+            key = { _, meme -> meme.id!! }
+        ) { index, meme ->
+            Box(
+                modifier = Modifier
+                    .gridItemAnimation(index = index)
+                    .animateItem(
+                        fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                        placementSpec = spring(
+                            stiffness = Spring.StiffnessMediumLow,
+                            visibilityThreshold = IntOffset.VisibilityThreshold
+                        ),
+                        fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                    ),
+            ) {
+                ImageMemeCard(
+                    meme = meme,
+                    onClick = onMemeTap,
+                    onFavoriteToggle = onFavoriteToggle,
+                    isSelectionMode = isSelectionMode,
+                    isSelected = meme.id?.let { selectedMemes.contains(it) } ?: false,
+                    onSelectionToggle = onSelectionToggle,
+                    modifier = Modifier.padding(itemSpacing)
+                )
+            }
+        }
     }
 }
 

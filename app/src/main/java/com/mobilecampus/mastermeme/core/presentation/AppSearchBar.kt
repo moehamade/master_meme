@@ -12,8 +12,11 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,14 +72,11 @@ fun AnimatedSearchableHeader(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-
-    Box(
-        modifier = modifier.fillMaxWidth(),
-    ) {
+    Box(modifier = modifier.fillMaxWidth()) {
         AnimatedVisibility(
             visible = isSearchActive,
-            enter = fadeIn() + slideInHorizontally(),
-            exit = fadeOut() + fadeOut()
+            enter = fadeIn() + expandHorizontally(),
+            exit = fadeOut() + shrinkHorizontally(),
         ) {
             DockedSearchBar(
                 modifier = Modifier
@@ -86,9 +86,12 @@ fun AnimatedSearchableHeader(
                     TextField(
                         value = searchQuery,
                         onValueChange = onSearchQueryChanged,
-                        placeholder = { Text("Search memes...") },
+                        placeholder = { Text("Search templates...") },
                         leadingIcon = {
-                            IconButton(onClick = onSearchClose) {
+                            IconButton(
+                                onClick = onSearchClose,
+                                modifier = Modifier.padding(start = 4.dp)
+                            ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Back",
@@ -96,9 +99,12 @@ fun AnimatedSearchableHeader(
                                 )
                             }
                         },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { onSearchQueryChanged("") }) {
+                        trailingIcon = if (searchQuery.isNotEmpty()) {
+                            {
+                                IconButton(
+                                    onClick = { onSearchQueryChanged("") },
+                                    modifier = Modifier.padding(end = 4.dp)
+                                ) {
                                     Icon(
                                         imageVector = Icons.Filled.Close,
                                         contentDescription = "Clear search",
@@ -106,7 +112,7 @@ fun AnimatedSearchableHeader(
                                     )
                                 }
                             }
-                        },
+                        } else null,
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
@@ -127,22 +133,16 @@ fun AnimatedSearchableHeader(
                     dividerColor = MaterialTheme.colorScheme.outline,
                 )
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    content()
-                }
+                content()
             }
         }
 
         AnimatedVisibility(
             visible = !isSearchActive,
-            enter = fadeIn() + expandVertically(),
+            enter = fadeIn() + slideInHorizontally(),
             exit = fadeOut() + shrinkVertically()
         ) {
-            Column(
-                modifier = Modifier
-            ) {
+            Column {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -151,9 +151,12 @@ fun AnimatedSearchableHeader(
                     Text(
                         text = stringResource(R.string.meme_list_choose_meme),
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
-                    IconButton(onClick = onSearchClick) {
+                    IconButton(
+                        onClick = onSearchClick,
+                        modifier = Modifier.padding(8.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Filled.Search,
                             contentDescription = "Search"
@@ -163,11 +166,17 @@ fun AnimatedSearchableHeader(
 
                 Text(
                     text = stringResource(R.string.meme_list_choose_meme_description),
-                    modifier = Modifier.padding(top = 16.dp),
+                    modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
                     style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Start
                 )
+
+                content()
             }
         }
+    }
+
+    BackHandler(enabled = isSearchActive) {
+        onSearchClose()
     }
 }
