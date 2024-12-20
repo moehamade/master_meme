@@ -1,10 +1,19 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,8 +24,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,6 +47,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,9 +62,14 @@ import com.mobilecampus.mastermeme.core.presentation.AnimatedSearchableHeader
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.AnimatedTemplateGrid
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.AnimationSpecs.scaleIn
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.UserMemeGrid
 import com.mobilecampus.mastermeme.ui.theme.White
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,7 +100,7 @@ fun MemeListScreenRoot(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun MemeListScreen(
     state: MemeListScreenState,
@@ -120,57 +138,94 @@ fun MemeListScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
-            when (state.loadingState) {
-                LoadingState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .padding(paddingValues)
-                            .fillMaxSize()
-                            .wrapContentSize()
-                    )
-                }
-
-                is LoadingState.Error -> {
-                    Text(
-                        text = state.loadingState.message,
-                        modifier = Modifier
-                            .padding(paddingValues)
-                            .fillMaxSize()
-                            .wrapContentSize()
-                    )
-                }
-
-                LoadingState.Success -> {
-                    if (state.isEmpty) {
-                        EmptyMemeListState(
+            AnimatedContent(
+                targetState = state.loadingState,
+                transitionSpec = {
+                    when {
+                        // Loading to Success transition
+                        initialState == LoadingState.Loading &&
+                                targetState == LoadingState.Success -> {
+                            (fadeIn(animationSpec = tween(300)) +
+                                    scaleIn(initialScale = 0.8f)).togetherWith(fadeOut(animationSpec = tween(150)))
+                        }
+                        // Transitions to Error state
+                        targetState is LoadingState.Error -> {
+                            (slideInVertically { height -> -height } +
+                                    fadeIn()).togetherWith(slideOutVertically { height -> height } +
+                                                            fadeOut())
+                        }
+                        // Default transition for other state changes
+                        else -> {
+                            fadeIn().togetherWith(fadeOut())
+                        }
+                    }.using(SizeTransform(clip = false))
+                },
+                label = "LoadingStateTransition"
+            ) { loadingState ->
+                when (loadingState) {
+                    LoadingState.Loading -> {
+                        CircularProgressIndicator(
                             modifier = Modifier
                                 .padding(paddingValues)
                                 .fillMaxSize()
+                                .wrapContentSize()
                         )
-                    } else {
-                        UserMemeGrid(
-                            memes = state.memes,
-                            state = gridScrollState,
-                            onMemeTap = { meme ->
-                                if (state.isSelectionModeActive) {
+                    }
+                    is LoadingState.Error -> {
+                        Column(
+                            modifier = Modifier
+                                .padding(paddingValues)
+                                .fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Error,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .padding(bottom = 16.dp),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Text(
+                                text = loadingState.message,
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                    LoadingState.Success -> {
+                        if (state.isEmpty) {
+                            EmptyMemeListState(
+                                modifier = Modifier
+                                    .padding(paddingValues)
+                                    .fillMaxSize()
+                            )
+                        } else {
+                            UserMemeGrid(
+                                memes = state.memes,
+                                state = gridScrollState,
+                                onMemeTap = { meme ->
+                                    if (state.isSelectionModeActive) {
+                                        onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
+                                    }
+                                },
+                                onFavoriteToggle = { meme ->
+                                    onAction(MemeListAction.ToggleFavorite(meme))
+                                },
+                                modifier = Modifier.padding(
+                                    start = paddingValues.calculateLeftPadding(LayoutDirection.Ltr),
+                                    end = paddingValues.calculateRightPadding(LayoutDirection.Ltr),
+                                    top = paddingValues.calculateTopPadding(),
+                                ),
+                                isSelectionMode = state.isSelectionModeActive,
+                                selectedMemes = state.selectedMemesIds,
+                                onSelectionToggle = { meme, _ ->
                                     onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
-                                }
-                            },
-                            onFavoriteToggle = { meme ->
-                                onAction(MemeListAction.ToggleFavorite(meme))
-                            },
-                            modifier = Modifier.padding(
-                                start = paddingValues.calculateLeftPadding(LayoutDirection.Ltr),
-                                end = paddingValues.calculateRightPadding(LayoutDirection.Ltr),
-                                top = paddingValues.calculateTopPadding(),
-                            ),
-                            isSelectionMode = state.isSelectionModeActive,
-                            selectedMemes = state.selectedMemesIds,
-                            onSelectionToggle = { meme, _ ->
-                                onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
-                            },
-                            sortOption = state.sortOption
-                        )
+                                },
+                                sortOption = state.sortOption
+                            )
+                        }
                     }
                 }
             }
@@ -207,7 +262,10 @@ fun MemeListScreen(
             AnimatedVisibility(
                 visible = state.isDeleteDialogVisible,
                 enter = fadeIn(),
-                exit = fadeOut()
+                exit = fadeOut(
+                    // Make exit animation match Material Design duration
+                    animationSpec = tween(durationMillis = 100)
+                )
             ) {
                 DeleteMemesDialog(
                     selectedCount = state.selectedMemesCount,
@@ -218,8 +276,7 @@ fun MemeListScreen(
                         onAction(MemeListAction.SetDeleteDialogVisible(false))
                     },
                     onDismiss = {
-                        onAction(MemeListAction.SetDeleteDialogVisible(false))
-                        onAction(MemeListAction.DisableSelectionMode)
+                        onAction(MemeListAction.DismissDeleteDialog)
                     }
                 )
             }

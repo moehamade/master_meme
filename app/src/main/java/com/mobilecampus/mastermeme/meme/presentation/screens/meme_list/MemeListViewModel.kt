@@ -9,8 +9,11 @@ import com.mobilecampus.mastermeme.meme.domain.use_case.GetMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ShareMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
@@ -20,6 +23,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class MemeListScreenState(
     val memes: List<MemeItem.ImageMeme> = emptyList(),
@@ -58,6 +62,7 @@ sealed interface MemeListAction {
     data class UpdateSearchQuery(val query: String) : MemeListAction
     data class UpdateSortOption(val option: SortOption) : MemeListAction
     data class SetDeleteDialogVisible(val visible: Boolean) : MemeListAction
+    data object DismissDeleteDialog : MemeListAction
     object ShareSelectedMemes : MemeListAction
 }
 
@@ -130,7 +135,23 @@ class MemeListViewModel(
             is MemeListAction.UpdateSortOption -> updateSortOption(action.option)
             is MemeListAction.ShareSelectedMemes -> shareSelectedMemes()
             is MemeListAction.SetSearchActive -> setSearchActive(action.active)
-            is MemeListAction.UpdateSearchQuery ->  updateSearchQuery(action.query)
+            is MemeListAction.UpdateSearchQuery -> updateSearchQuery(action.query)
+            is MemeListAction.DismissDeleteDialog -> dismissDeleteDialog()
+        }
+    }
+
+    private fun dismissDeleteDialog() {
+        viewModelScope.launch {
+            _state.update { it.copy(isDeleteDialogVisible = false) }
+            withContext(Dispatchers.Main.immediate) {
+                delay(150)
+                _state.update {
+                    it.copy(
+                        selectedMemesIds = emptySet(),
+                        isSelectionModeActive = false
+                    )
+                }
+            }
         }
     }
 
@@ -139,8 +160,14 @@ class MemeListViewModel(
     }
 
     private fun setBottomSheetVisibility(visible: Boolean) {
-        if(!visible) {
-            _state.update { it.copy(isBottomSheetVisible = false, isSearchActive = false, searchQuery = "") }
+        if (!visible) {
+            _state.update {
+                it.copy(
+                    isBottomSheetVisible = false,
+                    isSearchActive = false,
+                    searchQuery = ""
+                )
+            }
         } else {
             _state.update { it.copy(isBottomSheetVisible = true) }
         }
@@ -202,7 +229,7 @@ class MemeListViewModel(
     }
 
     private fun disableSelectionMode() {
-        _state.update { it.copy(isSelectionModeActive = false) }
+        _state.update { it.copy(isSelectionModeActive = false, isDeleteDialogVisible = false) }
         clearSelection()
     }
 
