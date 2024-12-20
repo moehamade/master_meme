@@ -1,6 +1,5 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor
 
-import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -24,10 +23,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -84,15 +85,11 @@ fun MemeEditorScreen(
 ) {
     val context = LocalContext.current
 
-    // Load the image and calculate its aspect ratio
-    // This is crucial for proper sizing and text box positioning
-    val imageBitmap = remember {
-        BitmapFactory.decodeResource(context.resources, resId)
-    }
+    // Load the image as an ImageBitmap and calculate its aspect ratio
+    val imageBitmap = ImageBitmap.imageResource(context.resources, resId)
     val imageAspectRatio = imageBitmap.width.toFloat() / imageBitmap.height.toFloat()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Track the actual bounds of the image within the layout
         var imageLayoutBounds by remember { mutableStateOf(IntRect.Zero) }
 
         // Background Image Component
@@ -102,39 +99,12 @@ fun MemeEditorScreen(
             modifier = Modifier
                 .align(Alignment.Center)
                 .fillMaxWidth()
-                // Use the actual image aspect ratio to prevent distortion
                 .aspectRatio(imageAspectRatio)
-                // Monitor the image's position and size in the layout
                 .onGloballyPositioned { coords ->
                     val position = coords.positionInRoot()
                     val size = coords.size
+                    val actualImageBounds = calculateActualImageBounds(size, imageAspectRatio)
 
-                    // Calculate the actual bounds of the image accounting for letterboxing
-                    // This ensures text boxes stay within the visible image area
-                    val containerAspectRatio = size.width.toFloat() / size.height.toFloat()
-                    val actualImageBounds = if (containerAspectRatio > imageAspectRatio) {
-                        // Image is height-constrained
-                        val actualWidth = size.height * imageAspectRatio
-                        val xOffset = (size.width - actualWidth) / 2
-                        IntRect(
-                            left = xOffset.roundToInt(),
-                            top = 0,
-                            right = (xOffset + actualWidth).roundToInt(),
-                            bottom = size.height
-                        )
-                    } else {
-                        // Image is width-constrained
-                        val actualHeight = size.width / imageAspectRatio
-                        val yOffset = (size.height - actualHeight) / 2
-                        IntRect(
-                            left = 0,
-                            top = yOffset.roundToInt(),
-                            right = size.width,
-                            bottom = (yOffset + actualHeight).roundToInt()
-                        )
-                    }
-
-                    // Update the layout bounds and notify the ViewModel
                     imageLayoutBounds = actualImageBounds
                     onAction(
                         MemeEditorAction.UpdateImagePosition(
@@ -168,27 +138,23 @@ fun MemeEditorScreen(
             )
         }
 
-        // Bottom control panel for text editing and meme operations
+        // Bottom control panel
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Track the currently selected text box to reset the font size slider
             var lastIdSelected by remember { mutableIntStateOf(state.currentEditingTextBox?.id ?: -1) }
 
-            // Text editing controls - only shown when a text box is selected
             state.currentEditingTextBox?.let {
                 var fontSize by remember { mutableFloatStateOf(it.style.fontSize) }
 
-                // Reset font size when selecting a different text box
                 if (lastIdSelected != it.id) {
                     lastIdSelected = it.id
                     fontSize = it.style.fontSize
                 }
 
-                // Font size slider
                 AppSlider(
                     value = fontSize,
                     onValueChange = { newFontSize ->
@@ -198,7 +164,6 @@ fun MemeEditorScreen(
                     valueRange = 24f..48f
                 )
 
-                // Text styling buttons
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { onAction(MemeEditorAction.ToggleFont) }) {
                         Text(if (it.style.font == MemeFont.IMPACT) "Impact" else "System")
@@ -216,7 +181,6 @@ fun MemeEditorScreen(
                 }
             }
 
-            // Main action buttons
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { onAction(MemeEditorAction.AddTextBox) }) {
                     Text("Add Text Box")
@@ -227,7 +191,6 @@ fun MemeEditorScreen(
             }
         }
 
-        // Text editing dialog
         if (state.showEditDialog && state.currentEditingTextBox != null) {
             EditTextDialog(
                 initialText = state.currentEditingTextBox.text,
@@ -237,5 +200,34 @@ fun MemeEditorScreen(
                 }
             )
         }
+    }
+}
+
+/**
+ * Calculates the visible area of the image within the provided container size,
+ * ensuring no distortion (letterboxing).
+ */
+private fun calculateActualImageBounds(size: IntSize, imageAspectRatio: Float): IntRect {
+    val containerAspectRatio = size.width.toFloat() / size.height.toFloat()
+    return if (containerAspectRatio > imageAspectRatio) {
+        // Image is height-constrained
+        val actualWidth = size.height * imageAspectRatio
+        val xOffset = ((size.width - actualWidth) / 2).roundToInt()
+        IntRect(
+            left = xOffset,
+            top = 0,
+            right = (xOffset + actualWidth).roundToInt(),
+            bottom = size.height
+        )
+    } else {
+        // Image is width-constrained
+        val actualHeight = size.width / imageAspectRatio
+        val yOffset = ((size.height - actualHeight) / 2).roundToInt()
+        IntRect(
+            left = 0,
+            top = yOffset,
+            right = size.width,
+            bottom = (yOffset + actualHeight).roundToInt()
+        )
     }
 }
