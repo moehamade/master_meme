@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -261,7 +260,7 @@ fun UserMemeGrid(
 
     LaunchedEffect(sortOption) {
         scope.launch {
-            state.scrollToItem(0)
+            state.animateScrollToItem(0)
         }
     }
 
@@ -276,7 +275,21 @@ fun UserMemeGrid(
         userMemes(
             memes = memes,
             onMemeTap = onMemeTap,
-            onFavoriteToggle = onFavoriteToggle,
+            onFavoriteToggle = { meme ->
+                scope.launch {
+                    val currentIndex = memes.indexOf(meme)
+                    val isFirstVisibleItem = state.firstVisibleItemIndex == currentIndex
+                    val currentOffset = state.firstVisibleItemScrollOffset
+
+                    if (isFirstVisibleItem && meme.isFavorite && sortOption == SortOption.FAVORITES_FIRST) {
+                        val nextVisibleItemIndex = (state.firstVisibleItemIndex + columns).coerceAtMost(memes.size - 1)
+                        onFavoriteToggle(meme)
+                        state.scrollToItem(nextVisibleItemIndex, currentOffset)
+                    } else {
+                        onFavoriteToggle(meme)
+                    }
+                }
+            },
             itemSpacing = itemSpacing,
             isSelectionMode = isSelectionMode,
             selectedMemes = selectedMemes,
