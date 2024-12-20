@@ -1,7 +1,9 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -11,6 +13,8 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,6 +43,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +61,7 @@ import com.mobilecampus.mastermeme.core.presentation.AnimatedSearchableHeader
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.AnimatedTemplateGrid
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.AnimationSpecs
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.UserMemeGrid
 import com.mobilecampus.mastermeme.ui.theme.White
@@ -236,6 +242,7 @@ fun MemeListScreen(
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun TemplateSelectionContent(
     templates: List<MemeItem.Template>,
@@ -244,6 +251,14 @@ fun TemplateSelectionContent(
 ) {
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+
+    val filteredTemplates by remember(searchQuery, templates) {
+        derivedStateOf {
+            templates.filter { template ->
+                template.description?.contains(searchQuery, ignoreCase = true) == true
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -265,58 +280,67 @@ fun TemplateSelectionContent(
             onSearchQueryChanged = { searchQuery = it },
             searchQuery = searchQuery
         ) {
-            BackHandler {}
-            AnimatedVisibility(
-                visible = searchQuery.isNotEmpty(),
-                enter = fadeIn(
-                    animationSpec = tween(150, easing = FastOutSlowInEasing)
-                ),
-                exit = fadeOut(
-                    animationSpec = tween(150, easing = FastOutSlowInEasing)
-                )
-            ) {
-                val filteredTemplates = templates.filter { template ->
-                    template.description?.contains(searchQuery, ignoreCase = true) == true
+            AnimatedContent(
+                targetState = searchQuery.isNotEmpty(),
+                transitionSpec = {
+                    fadeIn(AnimationSpecs.fadeIn).togetherWith(fadeOut(AnimationSpecs.fadeOut))
                 }
-                Column {
-                    Text(
-                        "${filteredTemplates.size} templates",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = MaterialTheme.colorScheme.outline
-                        ),
-                        modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
+            ) { isSearching ->
+                if (isSearching) {
+                    SearchResultsContent(
+                        filteredTemplates = filteredTemplates,
+                        onTemplateSelected = onTemplateSelected
                     )
-                    AnimatedTemplateGrid(
-                        modifier = Modifier.fillMaxSize(),
-                        templates = filteredTemplates,
-                        onTemplateClick = onTemplateSelected,
-                        columns = 2,
-                        contentPadding = PaddingValues(0.dp)
+                } else {
+                    DefaultContent(
+                        templates = templates,
+                        onTemplateSelected = onTemplateSelected,
+                        isSearchActive = isSearchActive
                     )
                 }
             }
         }
+    }
+}
 
-        AnimatedVisibility(
-            visible = !isSearchActive,
-            enter = fadeIn(
-                animationSpec = tween(150, easing = FastOutSlowInEasing)
+@Composable
+private fun SearchResultsContent(
+    filteredTemplates: List<MemeItem.Template>,
+    onTemplateSelected: (MemeItem.Template) -> Unit
+) {
+    Column {
+        Text(
+            "${filteredTemplates.size} templates",
+            style = MaterialTheme.typography.labelSmall.copy(
+                color = MaterialTheme.colorScheme.outline
             ),
-            exit = fadeOut(
-                animationSpec = tween(150, easing = FastOutSlowInEasing)
-            ),
-        ) {
-            Column {
-                Spacer(modifier = Modifier.height(16.dp))
-                AnimatedTemplateGrid(
-                    modifier = Modifier,
-                    templates = templates,
-                    onTemplateClick = onTemplateSelected,
-                    columns = 2,
-                    contentPadding = PaddingValues(0.dp)
-                )
-            }
-        }
+            modifier = Modifier.padding(bottom = 8.dp, top = 16.dp)
+        )
+        AnimatedTemplateGrid(
+            modifier = Modifier.fillMaxSize(),
+            templates = filteredTemplates,
+            onTemplateClick = onTemplateSelected,
+            columns = 2,
+            contentPadding = PaddingValues(0.dp)
+        )
+    }
+}
+
+@Composable
+private fun DefaultContent(
+    templates: List<MemeItem.Template>,
+    onTemplateSelected: (MemeItem.Template) -> Unit,
+    isSearchActive: Boolean
+) {
+    Column {
+        Spacer(modifier = Modifier.height(16.dp))
+        AnimatedTemplateGrid(
+            modifier = Modifier,
+            templates = templates,
+            onTemplateClick = onTemplateSelected,
+            columns = 2,
+            contentPadding = PaddingValues(0.dp)
+        )
     }
 }
 
