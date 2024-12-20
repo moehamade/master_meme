@@ -290,7 +290,12 @@ fun TemplateSelectionContent(
                             .padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
+                        Text(
+                            text = "No templates found :(",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        )
                     }
                 }
             }
