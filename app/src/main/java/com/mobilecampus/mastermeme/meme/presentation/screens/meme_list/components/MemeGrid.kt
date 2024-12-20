@@ -56,7 +56,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
-// Animation specs for consistent animations across components
 object AnimationSpecs {
     val fadeIn = tween<Float>(
         durationMillis = 300,
@@ -76,7 +75,6 @@ object AnimationSpecs {
     )
 }
 
-// Reusable animation modifier for grid items
 fun Modifier.gridItemAnimation(
     visible: Boolean = true,
     index: Int
@@ -139,50 +137,26 @@ fun Modifier.gridItemAnimation(
         }
 }
 
-
-// Extension function for template grids
-fun LazyGridScope.templateItems(
-    templates: List<MemeItem.Template>,
-    onTemplateClick: (MemeItem.Template) -> Unit,
-    itemSpacing: Dp = 8.dp
-) {
-    items(
-        items = templates,
-        // Using resourceId as key since it's guaranteed to be non-null
-        key = { it.resourceId }
-    ) { template ->
-        TemplateCard(
-            template = template,
-            onClick = onTemplateClick,
-            modifier = Modifier.padding(itemSpacing)
-        )
-    }
-}
-
-@OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
-fun LazyGridScope.userMemeItems(
+fun LazyGridScope.userMemes(
     memes: List<MemeItem.ImageMeme>,
-    onMemeClick: (MemeItem.ImageMeme) -> Unit,
-    modifier: Modifier = Modifier,
+    onMemeTap: (MemeItem.ImageMeme) -> Unit,
     onFavoriteToggle: (MemeItem.ImageMeme) -> Unit,
+    itemSpacing: Dp,
     isSelectionMode: Boolean = false,
     selectedMemes: Set<Int> = emptySet(),
-    onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit,
-    itemSpacing: Dp = 8.dp
+    onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit
 ) {
-    items(
+    itemsIndexed(
         items = memes,
-        key = { meme -> meme.id!! }
-    ) { meme ->
-        ImageMemeCard(
-            meme = meme,
-            onClick = onMemeClick,
-            onFavoriteToggle = onFavoriteToggle,
-            isSelectionMode = isSelectionMode,
-            isSelected = meme.id?.let { selectedMemes.contains(it) } ?: false,
-            onSelectionToggle = onSelectionToggle,
-            modifier = modifier
-                .padding(itemSpacing)
+        key = { _, meme -> meme.id!! }
+    ) { index, meme ->
+        Box(
+            modifier = Modifier
+                .gridItemAnimation(index = index)
+                .animatedScaleOnLoad(
+                    resourceId = meme.id!!,
+                    durationMillis = 300
+                )
                 .animateItem(
                     fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
                     placementSpec = spring(
@@ -191,10 +165,49 @@ fun LazyGridScope.userMemeItems(
                     ),
                     fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow)
                 ),
-        )
+        ) {
+            ImageMemeCard(
+                meme = meme,
+                onClick = onMemeTap,
+                onFavoriteToggle = onFavoriteToggle,
+                isSelectionMode = isSelectionMode,
+                isSelected = meme.id.let { selectedMemes.contains(it) },
+                onSelectionToggle = onSelectionToggle,
+                modifier = Modifier.padding(itemSpacing)
+            )
+        }
     }
 }
 
+fun LazyGridScope.templates(
+    templates: List<MemeItem.Template>,
+    onTemplateClick: (MemeItem.Template) -> Unit,
+    visibleState: MutableTransitionState<Boolean>,
+    itemSpacing: Dp
+) {
+    itemsIndexed(
+        items = templates,
+        key = { _, template -> template.resourceId }
+    ) { index, template ->
+        Box(
+            modifier = Modifier
+                .animatedScaleOnLoad(
+                    resourceId = template.resourceId,
+                    durationMillis = 300
+                )
+                .gridItemAnimation(
+                    visible = visibleState.targetState,
+                    index = index
+                )
+        ) {
+            TemplateCard(
+                template = template,
+                onClick = onTemplateClick,
+                modifier = Modifier.padding(itemSpacing)
+            )
+        }
+    }
+}
 
 @Composable
 fun AnimatedTemplateGrid(
@@ -218,24 +231,12 @@ fun AnimatedTemplateGrid(
         horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         verticalArrangement = Arrangement.spacedBy(itemSpacing)
     ) {
-        itemsIndexed(
-            items = templates,
-            key = { _, template -> template.resourceId }
-        ) { index, template ->
-            Box(
-                modifier = Modifier
-                    .gridItemAnimation(
-                        visible = visibleState.targetState,
-                        index = index
-                    )
-            ) {
-                TemplateCard(
-                    template = template,
-                    onClick = onTemplateClick,
-                    modifier = Modifier.padding(itemSpacing)
-                )
-            }
-        }
+        templates(
+            templates = templates,
+            onTemplateClick = onTemplateClick,
+            visibleState = visibleState,
+            itemSpacing = itemSpacing
+        )
     }
 }
 
@@ -272,33 +273,15 @@ fun UserMemeGrid(
         horizontalArrangement = Arrangement.spacedBy(itemSpacing),
         verticalArrangement = Arrangement.spacedBy(itemSpacing)
     ) {
-        itemsIndexed(
-            items = memes,
-            key = { _, meme -> meme.id!! }
-        ) { index, meme ->
-            Box(
-                modifier = Modifier
-                    .gridItemAnimation(index = index)
-                    .animateItem(
-                        fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                        placementSpec = spring(
-                            stiffness = Spring.StiffnessMediumLow,
-                            visibilityThreshold = IntOffset.VisibilityThreshold
-                        ),
-                        fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                    ),
-            ) {
-                ImageMemeCard(
-                    meme = meme,
-                    onClick = onMemeTap,
-                    onFavoriteToggle = onFavoriteToggle,
-                    isSelectionMode = isSelectionMode,
-                    isSelected = meme.id?.let { selectedMemes.contains(it) } ?: false,
-                    onSelectionToggle = onSelectionToggle,
-                    modifier = Modifier.padding(itemSpacing)
-                )
-            }
-        }
+        userMemes(
+            memes = memes,
+            onMemeTap = onMemeTap,
+            onFavoriteToggle = onFavoriteToggle,
+            itemSpacing = itemSpacing,
+            isSelectionMode = isSelectionMode,
+            selectedMemes = selectedMemes,
+            onSelectionToggle = onSelectionToggle
+        )
     }
 }
 
@@ -331,29 +314,23 @@ private fun MemeCardBase(
     }
 }
 
-@Composable
-fun AnimatedTemplateCard(
-    template: MemeItem.Template,
-    onClick: (MemeItem.Template) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    // Use remember with a key to persist the Animatable across recompositions
-    val scale = remember(template.resourceId) { Animatable(0.8f) }
+fun Modifier.animatedScaleOnLoad(
+    resourceId: Int,
+    initialScale: Float = 0.8f,
+    targetScale: Float = 1f,
+    durationMillis: Int = 300
+): Modifier = composed {
+    val scale = remember(resourceId) { Animatable(initialScale) }
 
-    // Only animate when the card is first created
-    LaunchedEffect(template.resourceId) {
-        scale.snapTo(0.8f)
+    LaunchedEffect(resourceId) {
+        scale.snapTo(initialScale)
         scale.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(300)
+            targetValue = targetScale,
+            animationSpec = tween(durationMillis)
         )
     }
 
-    TemplateCard(
-        template = template,
-        onClick = onClick,
-        modifier = modifier.scale(scale.value)
-    )
+    this.scale(scale.value)
 }
 
 // Specialized component for template memes
