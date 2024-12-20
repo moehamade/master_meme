@@ -187,8 +187,6 @@ class MemeEditorViewModel(
             saveMemeUseCase.saveMeme(
                 backgroundImageResId = resId,
                 textBoxes = state.textBoxes,
-                imageOffsetX = state.imageOffset.x,
-                imageOffsetY = state.imageOffset.y,
                 imageWidth = state.imageSize.width,
                 imageHeight = state.imageSize.height
             ).onSuccess { path ->
