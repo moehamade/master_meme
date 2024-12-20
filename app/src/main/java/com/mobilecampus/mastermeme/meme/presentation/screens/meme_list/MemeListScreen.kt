@@ -91,14 +91,7 @@ fun MemeListScreen(
 ) {
     var isDropdownMenuExpanded by remember { mutableStateOf(false) }
     val gridScrollState = rememberLazyGridState()
-
-    var test by remember { mutableStateOf(false) }
-    // Initialize sheet state with skipPartiallyExpanded as false to allow both states
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = state.isSearchActive
-    )
-
-
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = state.isSearchActive)
 
     Scaffold(
         topBar = {
