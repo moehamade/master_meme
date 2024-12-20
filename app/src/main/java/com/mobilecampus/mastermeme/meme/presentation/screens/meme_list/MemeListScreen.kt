@@ -13,7 +13,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,7 +46,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,14 +60,10 @@ import com.mobilecampus.mastermeme.core.presentation.AnimatedSearchableHeader
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.AnimatedTemplateGrid
-import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.AnimationSpecs.scaleIn
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.MemeListTopAppBar
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components.UserMemeGrid
+import com.mobilecampus.mastermeme.ui.theme.Black
 import com.mobilecampus.mastermeme.ui.theme.White
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -132,7 +126,7 @@ fun MemeListScreen(
                 FloatingActionButton(
                     onClick = { onAction(MemeListAction.SetBottomSheetVisibility(true)) }
                 ) {
-                    Icon(AppIcons.add, contentDescription = null)
+                    Icon(AppIcons.add, contentDescription = null, tint = Black)
                 }
             }
         }
@@ -262,10 +256,7 @@ fun MemeListScreen(
             AnimatedVisibility(
                 visible = state.isDeleteDialogVisible,
                 enter = fadeIn(),
-                exit = fadeOut(
-                    // Make exit animation match Material Design duration
-                    animationSpec = tween(durationMillis = 100)
-                )
+                exit = fadeOut(animationSpec = tween(durationMillis = 100))
             ) {
                 DeleteMemesDialog(
                     selectedCount = state.selectedMemesCount,
@@ -399,7 +390,7 @@ fun DeleteMemesDialog(
         },
         text = {
             Text(
-                text = "You will not be able to restore them. If you're fine with that, press 'Delete'.",
+                text = stringResource(R.string.you_will_not_be_able_to_restore_them_if_you_re_fine_with_that_press_delete),
                 style = MaterialTheme.typography.bodyMedium.copy(color = White)
             )
         },
