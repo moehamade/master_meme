@@ -62,7 +62,6 @@ fun MemeListScreenRoot(
     val viewModel = koinViewModel<MemeListViewModel>()
     val state = viewModel.state.collectAsStateWithLifecycle().value
 
-    // Handle events
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
@@ -71,7 +70,7 @@ fun MemeListScreenRoot(
                 }
 
                 is MemeListScreenEvent.ShowError -> {
-                    // Show error using your preferred method (Snackbar, Toast, etc.)
+                    // TODO: Handle Error
                 }
             }
         }
@@ -130,6 +129,7 @@ fun MemeListScreen(
                             .wrapContentSize()
                     )
                 }
+
                 is LoadingState.Error -> {
                     Text(
                         text = state.loadingState.message,
@@ -139,6 +139,7 @@ fun MemeListScreen(
                             .wrapContentSize()
                     )
                 }
+
                 LoadingState.Success -> {
                     if (state.isEmpty) {
                         EmptyMemeListState(
@@ -278,7 +279,6 @@ fun TemplateSelectionContent(
                         )
                     }
                 }
-
                 AnimatedVisibility(
                     visible = templates.isEmpty(),
                     enter = fadeIn(),
