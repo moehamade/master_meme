@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.util.Log
@@ -18,8 +17,6 @@ import com.mobilecampus.mastermeme.meme.domain.data_source.MemeDataSource
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
-import com.mobilecampus.mastermeme.meme.domain.model.editor.toFillColor
-import com.mobilecampus.mastermeme.meme.domain.model.editor.toOutlineColor
 import com.mobilecampus.mastermeme.meme.domain.use_case.SaveMemeUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -170,7 +167,7 @@ private suspend fun saveMemeInternally(
         // Adjust Y position to account for text baseline
         // Android draws text from the baseline, so we need to offset by the font metrics
         val adjustedY = scaledY - paint.fontMetrics.top
-        
+
         paint.style = Paint.Style.STROKE
         paint.color = textBox.style.color.toOutlineColor().toArgb()
         paint.strokeWidth = TypedValue.applyDimension(

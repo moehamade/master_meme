@@ -6,7 +6,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -16,10 +15,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
-import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
-import com.mobilecampus.mastermeme.meme.domain.model.editor.toFillColor
-import com.mobilecampus.mastermeme.meme.domain.model.editor.toOutlineColor
 
 @Composable
 fun OutlinedText(
