@@ -284,12 +284,13 @@ private fun EditorOptionButton(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .background(
-                if (isSelected) MaterialTheme.colorScheme.secondaryContainer
+                if (isSelected) Color(0xFF2A2930)
                 else Color.Transparent
             )
     ) {
         EditorIconButton(
             icon = icon,
+            backgroundColor = Color.Transparent,
             onClick = onClick
         )
     }
