@@ -6,7 +6,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -16,7 +15,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
-import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 
 @Composable
@@ -72,33 +70,14 @@ fun OutlinedText(
 
         // Outline
         paint.style = Paint.Style.STROKE
-        paint.color = memeTextOutlineColor(style.color).toArgb()
+        paint.color = style.color.toOutlineColor().toArgb()
         paint.strokeWidth = outlineWidth
         drawContext.canvas.nativeCanvas.drawText(text, x, y, paint)
 
         // Fill
         paint.style = Paint.Style.FILL
-        paint.color = memeTextColor(style.color).toArgb()
+        paint.color = style.color.toFillColor().toArgb()
         drawContext.canvas.nativeCanvas.drawText(text, x, y, paint)
     }
 }
 
-// map the enum of color choices to actual colors
-private fun memeTextColor(memeTextColor: MemeTextColor): Color {
-    return when (memeTextColor) {
-        MemeTextColor.WHITE -> Color.White
-        MemeTextColor.RED -> Color.Red
-        MemeTextColor.GREEN -> Color.Green
-        MemeTextColor.BLUE -> Color.Blue
-    }
-}
-
-// what outline we use for each color, (for example for white color, we have black outline)
-private fun memeTextOutlineColor(memeTextColor: MemeTextColor): Color {
-    return when (memeTextColor) {
-        MemeTextColor.WHITE -> Color.Black
-        MemeTextColor.RED -> Color.Black
-        MemeTextColor.GREEN -> Color.Black
-        MemeTextColor.BLUE -> Color.White
-    }
-}

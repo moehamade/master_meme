@@ -10,33 +10,39 @@ import com.mobilecampus.mastermeme.meme.domain.use_case.GetMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ShareMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-// State.kt
-// Contains all state-related classes and interfaces
 data class MemeListScreenState(
     val memes: List<MemeItem.ImageMeme> = emptyList(),
     val templates: List<MemeItem.Template> = emptyList(),
-    val filteredTemplates: List<MemeItem.Template> = emptyList(),
     val loadingState: LoadingState = LoadingState.Loading,
     val sortOption: SortOption = SortOption.FAVORITES_FIRST,
     val isSelectionModeActive: Boolean = false,
     val selectedMemesIds: Set<Int> = emptySet(),
     val isBottomSheetVisible: Boolean = false,
-    val templateSearchQuery: String = "",
-    val isDeleteDialogVisible: Boolean = false, // New state
+    val isSearchActive: Boolean = false,
+    val searchQuery: String = "",
+    val isDeleteDialogVisible: Boolean = false,
 ) {
-    // Helper properties for UI logic
     val selectedMemesCount: Int get() = selectedMemesIds.size
     val isEmpty: Boolean get() = loadingState == LoadingState.Success && memes.isEmpty()
+    val filteredTemplates: List<MemeItem.Template>
+        get() = if (searchQuery.isEmpty()) templates
+        else templates.filter { it.description?.contains(searchQuery, ignoreCase = true) == true }
 }
 
 sealed class LoadingState {
@@ -45,49 +51,35 @@ sealed class LoadingState {
     data class Error(val message: String) : LoadingState()
 }
 
-// Actions.kt
-// Contains all possible actions that can be triggered from the UI
 sealed interface MemeListAction {
-    // Navigation actions
-    data class OpenMemeEditor(val memeId: Int) : MemeListAction
     data class OpenTemplateEditor(val templateId: Int) : MemeListAction
-
-    // Meme management
     data class ToggleFavorite(val meme: MemeItem.ImageMeme) : MemeListAction
     data class DeleteSelectedMemes(val ids: Set<Int>) : MemeListAction
-
-    // Selection mode
     data class ToggleMemeSelection(val memeId: Int) : MemeListAction
-    object EnableSelectionMode : MemeListAction
     object DisableSelectionMode : MemeListAction
     object ClearSelection : MemeListAction
-
-    // Template and bottom sheet
-    data class UpdateTemplateSearch(val query: String) : MemeListAction
     data class SetBottomSheetVisibility(val visible: Boolean) : MemeListAction
-
-    // Sorting
+    data class SetSearchActive(val active: Boolean) : MemeListAction
+    data class UpdateSearchQuery(val query: String) : MemeListAction
     data class UpdateSortOption(val option: SortOption) : MemeListAction
-
     data class SetDeleteDialogVisible(val visible: Boolean) : MemeListAction
-
+    data object DismissDeleteDialog : MemeListAction
     object ShareSelectedMemes : MemeListAction
 }
 
-// Contains all events that can be emitted by the ViewModel
 sealed interface MemeListScreenEvent {
     data class NavigateToEditor(@IdRes val id: Int) : MemeListScreenEvent
     data class ShowError(val message: String) : MemeListScreenEvent
 }
 
-// ViewModel.kt
+@OptIn(FlowPreview::class)
 class MemeListViewModel(
     private val getMemesUseCase: GetMemesUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     private val deleteMemesUseCase: DeleteMemeUseCase,
     private val getTemplatesUseCase: GetTemplatesUseCase,
     private val shareMemesUseCase: ShareMemesUseCase,
-    ) : ViewModel() {
+) : ViewModel() {
     private val sortOptionFlow = MutableStateFlow(SortOption.FAVORITES_FIRST)
 
     private val _state = MutableStateFlow(MemeListScreenState())
@@ -108,8 +100,6 @@ class MemeListViewModel(
     private fun loadMemes() {
         viewModelScope.launch {
             _state.update { it.copy(loadingState = LoadingState.Loading) }
-
-            // Pass the sort option flow to the use case
             getMemesUseCase(sortOptionFlow)
                 .collectLatest { sortedMemes ->
                     _state.update { currentState ->
@@ -126,54 +116,70 @@ class MemeListViewModel(
         viewModelScope.launch {
             try {
                 val templates = getTemplatesUseCase()
-                _state.update { currentState ->
-                    currentState.copy(
-                        templates = templates,
-                        filteredTemplates = templates
-                    )
-                }
+                _state.update { it.copy(templates = templates) }
             } catch (e: Exception) {
-                eventChannel.send(
-                    MemeListScreenEvent.ShowError("Failed to load templates")
-                )
+                eventChannel.send(MemeListScreenEvent.ShowError("Failed to load templates"))
             }
         }
     }
 
     fun onAction(action: MemeListAction) {
-
         when (action) {
-            is MemeListAction.OpenMemeEditor -> navigateToEditor(action.memeId)
             is MemeListAction.OpenTemplateEditor -> navigateToEditor(action.templateId)
             is MemeListAction.ToggleFavorite -> toggleFavorite(action.meme)
             is MemeListAction.DeleteSelectedMemes -> deleteSelectedMemes(action.ids)
             is MemeListAction.SetDeleteDialogVisible -> setDeleteDialogVisible(action.visible)
             is MemeListAction.ToggleMemeSelection -> toggleMemeSelection(action.memeId)
-            is MemeListAction.EnableSelectionMode -> enableSelectionMode()
             is MemeListAction.DisableSelectionMode -> disableSelectionMode()
             is MemeListAction.ClearSelection -> clearSelection()
-            is MemeListAction.UpdateTemplateSearch -> updateTemplateSearch(action.query)
-            is MemeListAction.SetBottomSheetVisibility -> updateBottomSheetVisibility(action.visible)
+            is MemeListAction.SetBottomSheetVisibility -> setBottomSheetVisibility(action.visible)
             is MemeListAction.UpdateSortOption -> updateSortOption(action.option)
             is MemeListAction.ShareSelectedMemes -> shareSelectedMemes()
+            is MemeListAction.SetSearchActive -> setSearchActive(action.active)
+            is MemeListAction.UpdateSearchQuery -> updateSearchQuery(action.query)
+            is MemeListAction.DismissDeleteDialog -> dismissDeleteDialog()
         }
     }
 
-    private fun shareSelectedMemes() {
+    private fun dismissDeleteDialog() {
         viewModelScope.launch {
-            try {
-                shareMemesUseCase(state.value.selectedMemesIds)
-                disableSelectionMode()
-            } catch (e: Exception) {
-                eventChannel.send(
-                    MemeListScreenEvent.ShowError("Failed to share memes: ${e.message}")
-                )
+            _state.update { it.copy(isDeleteDialogVisible = false) }
+            withContext(Dispatchers.Main.immediate) {
+                delay(150)
+                _state.update {
+                    it.copy(
+                        selectedMemesIds = emptySet(),
+                        isSelectionModeActive = false
+                    )
+                }
             }
         }
     }
 
-    private fun setDeleteDialogVisible(visible: Boolean) {
-        _state.update { it.copy(isDeleteDialogVisible = visible) }
+    private fun updateSearchQuery(query: String) {
+        _state.update { it.copy(searchQuery = query) }
+    }
+
+    private fun setBottomSheetVisibility(visible: Boolean) {
+        if (!visible) {
+            _state.update {
+                it.copy(
+                    isBottomSheetVisible = false,
+                    isSearchActive = false,
+                    searchQuery = ""
+                )
+            }
+        } else {
+            _state.update { it.copy(isBottomSheetVisible = true) }
+        }
+    }
+
+    private fun setSearchActive(active: Boolean) {
+        if (!active) {
+            _state.update { it.copy(isSearchActive = false, searchQuery = "") }
+        } else {
+            _state.update { it.copy(isSearchActive = true) }
+        }
     }
 
     private fun navigateToEditor(id: Int) {
@@ -187,9 +193,7 @@ class MemeListViewModel(
             try {
                 toggleFavoriteUseCase(meme.id!!)
             } catch (e: Exception) {
-                eventChannel.send(
-                    MemeListScreenEvent.ShowError("Failed to toggle favorite")
-                )
+                eventChannel.send(MemeListScreenEvent.ShowError("Failed to toggle favorite"))
             }
         }
     }
@@ -199,17 +203,13 @@ class MemeListViewModel(
             try {
                 _state.update { it.copy(loadingState = LoadingState.Loading) }
                 deleteMemesUseCase(ids)
-
                 clearSelection()
                 disableSelectionMode()
-                setDeleteDialogVisible(false) // Hide dialog after successful deletion
-
+                setDeleteDialogVisible(false)
                 _state.update { it.copy(loadingState = LoadingState.Success) }
             } catch (e: Exception) {
                 _state.update { it.copy(loadingState = LoadingState.Success) }
-                eventChannel.send(
-                    MemeListScreenEvent.ShowError("Failed to delete memes: ${e.message}")
-                )
+                eventChannel.send(MemeListScreenEvent.ShowError("Failed to delete memes: ${e.message}"))
             }
         }
     }
@@ -222,7 +222,6 @@ class MemeListViewModel(
             } else {
                 newSelectedMemes.add(memeId)
             }
-
             currentState.copy(
                 selectedMemesIds = newSelectedMemes,
                 isSelectionModeActive = newSelectedMemes.isNotEmpty()
@@ -230,12 +229,8 @@ class MemeListViewModel(
         }
     }
 
-    private fun enableSelectionMode() {
-        _state.update { it.copy(isSelectionModeActive = true) }
-    }
-
     private fun disableSelectionMode() {
-        _state.update { it.copy(isSelectionModeActive = false) }
+        _state.update { it.copy(isSelectionModeActive = false, isDeleteDialogVisible = false) }
         clearSelection()
     }
 
@@ -243,31 +238,25 @@ class MemeListViewModel(
         _state.update { it.copy(selectedMemesIds = emptySet()) }
     }
 
-    private fun updateTemplateSearch(query: String) {
-        _state.update { currentState ->
-            val filtered = if (query.isEmpty()) {
-                currentState.templates
-            } else {
-                currentState.templates.filter {
-                    it.description?.contains(query, ignoreCase = true) == true
-                }
-            }
-
-            currentState.copy(
-                templateSearchQuery = query,
-                filteredTemplates = filtered
-            )
-        }
-    }
-
-    private fun updateBottomSheetVisibility(visible: Boolean) {
-        _state.update { it.copy(isBottomSheetVisible = visible) }
+    private fun setDeleteDialogVisible(visible: Boolean) {
+        _state.update { it.copy(isDeleteDialogVisible = visible) }
     }
 
     private fun updateSortOption(option: SortOption) {
         viewModelScope.launch {
             sortOptionFlow.emit(option)
             _state.update { it.copy(sortOption = option) }
+        }
+    }
+
+    private fun shareSelectedMemes() {
+        viewModelScope.launch {
+            try {
+                shareMemesUseCase(state.value.selectedMemesIds)
+                disableSelectionMode()
+            } catch (e: Exception) {
+                eventChannel.send(MemeListScreenEvent.ShowError("Failed to share memes: ${e.message}"))
+            }
         }
     }
 }
