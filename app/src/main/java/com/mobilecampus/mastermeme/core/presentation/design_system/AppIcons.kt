@@ -1,6 +1,7 @@
 package com.mobilecampus.mastermeme.core.presentation.design_system
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -20,6 +21,10 @@ object AppIcons {
     val redo: ImageVector
         @Composable
         get() = ImageVector.vectorResource(R.drawable.icon_redo)
+
+    val arrowBack : ImageVector
+        @Composable
+        get() = Icons.AutoMirrored.Filled.ArrowBack
 
     val meme: Array<Int> by lazy {
         Array(50) { index ->
