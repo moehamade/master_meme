@@ -51,6 +51,7 @@ import com.mobilecampus.mastermeme.core.presentation.design_system.RoundedCheckb
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.reflect.KProperty1
 
 
 object AnimationSpecs {
@@ -134,52 +135,7 @@ fun Modifier.gridItemAnimation(
         }
 }
 
-fun LazyGridScope.userMemes(
-    memes: List<MemeItem.ImageMeme>,
-    onMemeTap: (MemeItem.ImageMeme) -> Unit,
-    onFavoriteToggle: (MemeItem.ImageMeme) -> Unit,
-    itemSpacing: Dp,
-    isSelectionMode: Boolean = false,
-    selectedMemes: Set<Int> = emptySet(),
-    onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit
-) {
-    itemsIndexed(
-        items = memes,
-        key = { index, meme ->
-            if (index == 0) {
-                "first_${meme.id}"
-            } else {
-                "item_${meme.id}"
-            }
-        }    ) { index, meme ->
-        Box(
-            modifier = Modifier
-                .gridItemAnimation(index = index)
-                .animatedScaleOnLoad(
-                    resourceId = meme.id!!,
-                    durationMillis = 300
-                )
-                .animateItem(
-                    fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                    placementSpec = spring(
-                        stiffness = Spring.StiffnessMediumLow,
-                        visibilityThreshold = IntOffset.VisibilityThreshold
-                    ),
-                    fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                ),
-        ) {
-            ImageMemeCard(
-                meme = meme,
-                onClick = onMemeTap,
-                onFavoriteToggle = onFavoriteToggle,
-                isSelectionMode = isSelectionMode,
-                isSelected = meme.id.let { selectedMemes.contains(it) },
-                onSelectionToggle = onSelectionToggle,
-                modifier = Modifier.padding(itemSpacing)
-            )
-        }
-    }
-}
+
 
 fun LazyGridScope.templates(
     templates: List<MemeItem.Template>,
@@ -243,6 +199,54 @@ fun AnimatedTemplateGrid(
 }
 
 
+fun LazyGridScope.userMemes(
+    memes: List<MemeItem.ImageMeme>,
+    state: LazyGridState,
+    onMemeTap: (MemeItem.ImageMeme) -> Unit,
+    onFavoriteToggle: (MemeItem.ImageMeme) -> Unit,
+    itemSpacing: Dp,
+    isSelectionMode: Boolean = false,
+    selectedMemes: Set<Int> = emptySet(),
+    onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit
+) {
+    itemsIndexed(
+        items = memes,
+        key = { index, meme ->
+            if (index == 0) {
+                "first_${meme.id}"
+            } else {
+                "item_${meme.id}"
+            }
+        }    ) { index, meme ->
+        Box(
+            modifier = Modifier
+                .gridItemAnimation(index = index)
+                .animatedScaleOnLoad(
+                    resourceId = meme.id!!,
+                    durationMillis = 300
+                )
+                .animateItem(
+                    fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                    placementSpec = spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        visibilityThreshold = IntOffset.VisibilityThreshold
+                    ),
+                    fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                ),
+        ) {
+            ImageMemeCard(
+                meme = meme,
+                onClick = onMemeTap,
+                onFavoriteToggle = onFavoriteToggle,
+                isSelectionMode = isSelectionMode,
+                isSelected = meme.id.let { selectedMemes.contains(it) },
+                onSelectionToggle = onSelectionToggle,
+                modifier = Modifier.padding(itemSpacing)
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun UserMemeGrid(
@@ -268,6 +272,7 @@ fun UserMemeGrid(
     ) {
         userMemes(
             memes = memes,
+            state = state,
             onMemeTap = onMemeTap,
             onFavoriteToggle = onFavoriteToggle,
             itemSpacing = itemSpacing,
