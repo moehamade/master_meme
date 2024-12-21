@@ -1,7 +1,9 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,8 +30,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FontDownload
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Redo
-import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -38,6 +39,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -47,14 +49,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.mobilecampus.mastermeme.core.presentation.design_system.MasterMemeBackground
 import com.mobilecampus.mastermeme.ui.theme.ExtendedTheme
-import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 
 sealed class BottomBarLayout {
     object Default : BottomBarLayout()
@@ -97,7 +101,10 @@ fun MemeEditorBottomBar(
                     when (selectedOption) {
                         TextEditorOption.FontFamily -> FontFamilySelector(onFontFamilySelected)
                         TextEditorOption.FontSize -> FontSizeSelector(onFontSizeChanged)
-                        TextEditorOption.ColorPicker -> ColorSelector(onColorSelected)
+                        TextEditorOption.ColorPicker -> ColorSelector(
+                            selectedColor = Color.Black,
+                            onColorSelected = onColorSelected
+                        )
                         null -> {}
                     }
                 }
@@ -326,7 +333,10 @@ private fun FontSizeSelector(onSizeChanged: (Float) -> Unit) {
 }
 
 @Composable
-private fun ColorSelector(onColorSelected: (Color) -> Unit) {
+private fun ColorSelector(
+    selectedColor: Color,
+    onColorSelected: (Color) -> Unit
+) {
     val colors = listOf(
         Color.White,
         Color.Black,
@@ -344,12 +354,59 @@ private fun ColorSelector(onColorSelected: (Color) -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         items(colors) { color ->
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(color)
-                    .clickable { onColorSelected(color) }
+            ColorCircle(
+                color = color,
+                isSelected = color == selectedColor,
+                onClick = { onColorSelected(color) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColorCircle(
+    color: Color,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val size = 48.dp
+    val selectionRingSize = size * 1.3f
+    val selectionRingColor = Color(0x33606060)
+
+    Canvas(
+        modifier = modifier
+            .size(selectionRingSize)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ripple(bounded = false, radius = size/2),
+                onClick = onClick
+            )
+    ) {
+
+        if (isSelected) {
+            // Draw selection ring
+            drawCircle(
+                color = selectionRingColor,
+                radius = selectionRingSize.toPx() / 2,
+                center = center
+            )
+        }
+
+        // Draw main color circle
+        drawCircle(
+            color = color,
+            radius = size.toPx() / 2,
+            center = center
+        )
+
+        // If the color is white, draw a thin gray border
+        if (color == Color.White) {
+            drawCircle(
+                color = Color.Gray,
+                radius = size.toPx() / 2,
+                center = center,
+                style = Stroke(width = 1.dp.toPx())
             )
         }
     }
@@ -358,10 +415,49 @@ private fun ColorSelector(onColorSelected: (Color) -> Unit) {
 @Preview
 @Composable
 fun MemeEditorBottomBarPreview() {
-    MasterMemeTheme {
-        MemeEditorBottomBar(
-            modifier = Modifier.systemBarsPadding(),
-            currentLayout = BottomBarLayout.Default
+    MasterMemeBackground {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            MemeEditorBottomBar(
+                modifier = Modifier.systemBarsPadding(),
+                currentLayout = BottomBarLayout.TextEditor
+            )
+            MemeEditorBottomBar(
+                modifier = Modifier.systemBarsPadding(),
+                currentLayout = BottomBarLayout.Default
+            )
+        }
+
+    }
+}
+@Preview
+@Composable
+fun FontFamilySelectorPreview() {
+    FontFamilySelector(onSelected = {})
+}
+@Preview
+@Composable
+private fun FontSizeSelectorPreview() {
+    FontSizeSelector({})
+}
+@Preview(showBackground = true)
+@Composable
+fun ColorSelectorPreview() {
+    MaterialTheme {
+        ColorSelector(
+            selectedColor = Color.Red,
+            onColorSelected = {}
         )
     }
+}
+@Preview
+@Composable
+fun ColorCirclePreview() {
+    ColorCircle(
+        color = Color.Red,
+        isSelected = true,
+        onClick = { }
+    )
 }
