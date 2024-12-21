@@ -30,7 +30,7 @@ fun EditorIconButton(
             colors = IconButtonDefaults.iconButtonColors().copy(
                 containerColor = backgroundColor,
                 disabledContainerColor = backgroundColor,
-                contentColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.surfaceDim,
                 disabledContentColor = MaterialTheme.colorScheme.secondary.copy(alpha = .3f)
             ),
             enabled = enabled,
