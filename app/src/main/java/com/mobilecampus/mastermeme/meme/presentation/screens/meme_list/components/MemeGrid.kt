@@ -36,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -50,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.mobilecampus.mastermeme.core.presentation.design_system.RoundedCheckbox
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
-import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -85,7 +83,7 @@ fun Modifier.gridItemAnimation(
     LaunchedEffect(visible) {
         launch {
             if (visible) {
-                delay(index * 50L) // Staggered animation
+                delay(index * 50L)
                 offsetY.animateTo(
                     targetValue = 0f,
                     animationSpec = AnimationSpecs.slideIn
@@ -147,8 +145,13 @@ fun LazyGridScope.userMemes(
 ) {
     itemsIndexed(
         items = memes,
-        key = { _, meme -> meme.id!! }
-    ) { index, meme ->
+        key = { index, meme ->
+            if (index == 0) {
+                "first_${meme.id}"
+            } else {
+                "item_${meme.id}"
+            }
+        }    ) { index, meme ->
         Box(
             modifier = Modifier
                 .gridItemAnimation(index = index)
@@ -254,16 +257,7 @@ fun UserMemeGrid(
     isSelectionMode: Boolean = false,
     selectedMemes: Set<Int> = emptySet(),
     onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit,
-    sortOption: SortOption
 ) {
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(sortOption) {
-        scope.launch {
-            state.animateScrollToItem(0)
-        }
-    }
-
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         modifier = modifier,
@@ -275,21 +269,7 @@ fun UserMemeGrid(
         userMemes(
             memes = memes,
             onMemeTap = onMemeTap,
-            onFavoriteToggle = { meme ->
-                scope.launch {
-                    val currentIndex = memes.indexOf(meme)
-                    val isFirstVisibleItem = state.firstVisibleItemIndex == currentIndex
-                    val currentOffset = state.firstVisibleItemScrollOffset
-
-                    if (isFirstVisibleItem && meme.isFavorite && sortOption == SortOption.FAVORITES_FIRST) {
-                        val nextVisibleItemIndex = (state.firstVisibleItemIndex + columns).coerceAtMost(memes.size - 1)
-                        onFavoriteToggle(meme)
-                        state.scrollToItem(nextVisibleItemIndex, currentOffset)
-                    } else {
-                        onFavoriteToggle(meme)
-                    }
-                }
-            },
+            onFavoriteToggle = onFavoriteToggle,
             itemSpacing = itemSpacing,
             isSelectionMode = isSelectionMode,
             selectedMemes = selectedMemes,
