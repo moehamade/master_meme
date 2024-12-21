@@ -1,5 +1,6 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +28,9 @@ data class MemeEditorState(
 )
 
 sealed class MemeEditorAction {
+
+    data object OnArrowBackClick : MemeEditorAction()
+
     // Default Editor actions
     data object Undo : MemeEditorAction()
     data object Redo : MemeEditorAction()
@@ -48,6 +52,7 @@ sealed class MemeEditorAction {
 }
 
 sealed interface MemeEditorEvent {
+    data object OnNavigateBack: MemeEditorEvent
     data class OnSaveResult(val success: Boolean, val filePath: String? = null) : MemeEditorEvent
 }
 
@@ -87,6 +92,13 @@ class MemeEditorViewModel(
             is MemeEditorAction.DeleteTextBox -> deleteTextBox(event.id)
             is MemeEditorAction.SelectTextBox -> selectTextBox(event.id)
             is MemeEditorAction.UpdateImagePosition -> updateImagePosition(event.offset, event.size)
+            is MemeEditorAction.OnArrowBackClick -> navigateBack()
+        }
+    }
+
+    private fun navigateBack() {
+        viewModelScope.launch {
+            eventChannel.send(MemeEditorEvent.OnNavigateBack)
         }
     }
 

@@ -1,6 +1,5 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor
 
-import android.R.attr.contentDescription
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -13,9 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,7 +41,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
-import com.mobilecampus.mastermeme.core.presentation.design_system.AppTopAppBar
 import com.mobilecampus.mastermeme.core.presentation.design_system.CenterAlignedAppTopAppBar
 import com.mobilecampus.mastermeme.core.presentation.util.ObserveAsEvents
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
@@ -53,7 +49,6 @@ import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.AppSlider
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.BottomBarLayout
-import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DefaultEditorView
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DraggableTextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.EditTextDialog
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.MemeEditorBottomBar
@@ -64,7 +59,7 @@ import kotlin.math.roundToInt
 @Composable
 fun MemeEditorScreenRoot(
     @DrawableRes backgroundImageResId: Int,
-    onNavigateBack : () -> Unit,
+    onNavigateBack: () -> Unit,
     viewModel: MemeEditorViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
@@ -73,6 +68,7 @@ fun MemeEditorScreenRoot(
     // Observe saveCompleted events
     ObserveAsEvents(flow = viewModel.events) { event ->
         when (event) {
+            MemeEditorEvent.OnNavigateBack -> onNavigateBack()
             is MemeEditorEvent.OnSaveResult -> {
                 val success = event.success
                 val path = event.filePath
@@ -94,7 +90,7 @@ fun MemeEditorScreenRoot(
     MemeEditorScreen(
         resId = backgroundImageResId,
         state = state,
-        onAction = viewModel::onAction
+        onAction = viewModel::onAction,
     )
 }
 
@@ -103,7 +99,7 @@ fun MemeEditorScreenRoot(
 fun MemeEditorScreen(
     @DrawableRes resId: Int,
     state: MemeEditorState,
-    onAction: (MemeEditorAction) -> Unit
+    onAction: (MemeEditorAction) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -116,16 +112,15 @@ fun MemeEditorScreen(
             CenterAlignedAppTopAppBar(
                 title = "Edit Meme",
                 navigationIcon = {
-                    IconButton(
-                        onClick = {}
-                    ) {
-                        IconButton(onClick = { }) {
-                            Icon(
-                                imageVector = AppIcons.arrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
+                    IconButton(onClick = {
+                        onAction(MemeEditorAction.OnArrowBackClick)
+                    }) {
+                        Icon(
+                            imageVector = AppIcons.arrowBack,
+                            contentDescription = "Back"
+                        )
                     }
+
                 }
             )
         },
@@ -144,11 +139,10 @@ fun MemeEditorScreen(
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier
-            .padding(
-                bottom = paddingValues.calculateBottomPadding(),
-            )
-            .fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = paddingValues.calculateBottomPadding())
         ) {
             var imageLayoutBounds by remember { mutableStateOf(IntRect.Zero) }
 
@@ -291,7 +285,6 @@ private fun calculateActualImageBounds(size: IntSize, imageAspectRatio: Float): 
 }
 
 
-
 @Preview(showBackground = true)
 @Composable
 private fun MemeEditorScreenPreview() {
@@ -318,7 +311,7 @@ private fun MemeEditorScreenPreview() {
                         )
                     )
                 ),
-                onAction = {}
+                onAction = {},
             )
         }
     }
