@@ -19,12 +19,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -40,6 +42,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -52,6 +55,7 @@ import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons.meme
 import com.mobilecampus.mastermeme.core.presentation.design_system.RoundedCheckbox
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
+import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.GradientOverlay
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty1
@@ -243,7 +247,6 @@ fun LazyGridScope.userMemes(
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun UserMemeGrid(
     memes: List<MemeItem.ImageMeme>,
@@ -262,23 +265,27 @@ fun UserMemeGrid(
     LaunchedEffect(sortOption) {
         state.scrollToItem(0)
     }
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        modifier = modifier,
-        state = state,
-        contentPadding = contentPadding,
-        horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-        verticalArrangement = Arrangement.spacedBy(itemSpacing)
-    ) {
-        userMemes(
-            memes = memes,
-            onMemeTap = onMemeTap,
-            onFavoriteToggle = onFavoriteToggle,
-            itemSpacing = itemSpacing,
-            isSelectionMode = isSelectionMode,
-            selectedMemes = selectedMemes,
-            onSelectionToggle = onSelectionToggle
-        )
+    Box(modifier = modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(columns),
+            modifier = Modifier.fillMaxSize(),
+            state = state,
+            contentPadding = contentPadding,
+            horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+            verticalArrangement = Arrangement.spacedBy(itemSpacing)
+        ) {
+            userMemes(
+                memes = memes,
+                onMemeTap = onMemeTap,
+                onFavoriteToggle = onFavoriteToggle,
+                itemSpacing = itemSpacing,
+                isSelectionMode = isSelectionMode,
+                selectedMemes = selectedMemes,
+                onSelectionToggle = onSelectionToggle
+            )
+        }
+
+        GradientOverlay(modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 

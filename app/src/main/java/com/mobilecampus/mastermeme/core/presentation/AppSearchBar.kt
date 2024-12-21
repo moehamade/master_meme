@@ -141,7 +141,7 @@ fun AnimatedSearchableHeader(
                     )
                     IconButton(
                         onClick = onSearchClick,
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Search,
@@ -152,7 +152,7 @@ fun AnimatedSearchableHeader(
 
                 Text(
                     text = stringResource(R.string.meme_list_choose_meme_description),
-                    modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
+                    modifier = Modifier.padding(top = 4.dp, bottom = 16.dp),
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Start
                 )

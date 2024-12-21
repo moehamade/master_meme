@@ -14,6 +14,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,14 +22,20 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,6 +56,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -140,13 +150,19 @@ fun MemeListScreen(
                         initialState == LoadingState.Loading &&
                                 targetState == LoadingState.Success -> {
                             (fadeIn(animationSpec = tween(300)) +
-                                    scaleIn(initialScale = 0.8f)).togetherWith(fadeOut(animationSpec = tween(150)))
+                                    scaleIn(initialScale = 0.8f)).togetherWith(
+                                fadeOut(
+                                    animationSpec = tween(
+                                        150
+                                    )
+                                )
+                            )
                         }
                         // Transitions to Error state
                         targetState is LoadingState.Error -> {
                             (slideInVertically { height -> -height } +
                                     fadeIn()).togetherWith(slideOutVertically { height -> height } +
-                                                            fadeOut())
+                                    fadeOut())
                         }
                         // Default transition for other state changes
                         else -> {
@@ -165,6 +181,7 @@ fun MemeListScreen(
                                 .wrapContentSize()
                         )
                     }
+
                     is LoadingState.Error -> {
                         Column(
                             modifier = Modifier
@@ -188,6 +205,7 @@ fun MemeListScreen(
                             )
                         }
                     }
+
                     LoadingState.Success -> {
                         if (state.isEmpty) {
                             EmptyMemeListState(
@@ -235,21 +253,36 @@ fun MemeListScreen(
                         shouldDismissOnBackPress = true
                     )
                 ) {
-                    TemplateSelectionContent(
-                        templates = state.filteredTemplates,
-                        onTemplateSelected = { template ->
-                            onAction(MemeListAction.SetBottomSheetVisibility(false))
-                            onAction(MemeListAction.OpenTemplateEditor(template.resourceId))
-                        },
-                        isSearchActive = state.isSearchActive,
-                        searchQuery = state.searchQuery,
-                        onSearchActiveChange = { isActive ->
-                            onAction(MemeListAction.SetSearchActive(isActive))
-                        },
-                        onSearchQueryChange = { query ->
-                            onAction(MemeListAction.UpdateSearchQuery(query))
-                        }
-                    )
+                    Box(Modifier) {
+
+                        TemplateSelectionContent(
+                            templates = state.filteredTemplates,
+                            onTemplateSelected = { template ->
+                                onAction(MemeListAction.SetBottomSheetVisibility(false))
+                                onAction(MemeListAction.OpenTemplateEditor(template.resourceId))
+                            },
+                            isSearchActive = state.isSearchActive,
+                            searchQuery = state.searchQuery,
+                            onSearchActiveChange = { isActive ->
+                                onAction(MemeListAction.SetSearchActive(isActive))
+                            },
+                            onSearchQueryChange = { query ->
+                                onAction(MemeListAction.UpdateSearchQuery(query))
+                            }
+                        )
+                        GradientOverlay(
+                            modifier = Modifier
+                                .clip(
+                                    RoundedCornerShape(
+                                        bottomEnd = 8.dp,
+                                        bottomStart = 8.dp
+                                    )
+                                )
+                                .align(Alignment.BottomCenter)
+                                .height(70.dp)
+                        )
+                    }
+
                 }
             }
 
@@ -287,7 +320,7 @@ fun TemplateSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
             .imePadding()
     ) {
         AnimatedSearchableHeader(
@@ -306,17 +339,19 @@ fun TemplateSelectionContent(
                     exit = fadeOut() + shrinkVertically()
                 ) {
                     Column {
-                        Text(
-                            text = if (searchQuery.isNotEmpty()) {
-                                "${templates.size} templates found"
-                            } else {
-                                "${templates.size} templates available"
-                            },
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.outline
-                            ),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
+                        if (isSearchActive){
+                            Text(
+                                text = if (searchQuery.isNotEmpty()) {
+                                    "${templates.size} templates found"
+                                } else {
+                                    "${templates.size} templates available"
+                                },
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = MaterialTheme.colorScheme.outline
+                                ),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
 
                         AnimatedTemplateGrid(
                             modifier = Modifier.fillMaxSize(),
@@ -371,6 +406,32 @@ fun EmptyMemeListState(modifier: Modifier) {
             )
         )
     }
+}
+
+@Composable
+fun GradientOverlay(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(70.dp)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0x00141218),
+                        Color(0xFF141218)
+                    ),
+                    startY = 0f,
+                    endY = 130.0f
+                ),
+                shape = RoundedCornerShape(
+                    topStart = 0.dp,
+                    topEnd = 0.dp,
+                    bottomEnd = 4.dp,
+                    bottomStart = 4.dp
+                )
+            )
+
+    )
 }
 
 @Composable
