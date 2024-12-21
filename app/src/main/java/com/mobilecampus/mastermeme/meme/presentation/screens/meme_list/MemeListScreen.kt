@@ -259,7 +259,7 @@ fun MemeListScreen(
                     dragHandle = {
                         val isExpanded = sheetState.currentValue == SheetValue.Expanded
                         val topPadding by animateFloatAsState(
-                            targetValue = if (isExpanded && state.isSearchActive == false) 1f else 0f,
+                            targetValue = if (isExpanded && !state.isSearchActive) 1f else 0f,
                             animationSpec = spring(
                                 dampingRatio = Spring.DampingRatioNoBouncy,
                                 stiffness = Spring.StiffnessMedium
