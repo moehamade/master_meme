@@ -1,5 +1,6 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor
 
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -53,6 +54,7 @@ import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.B
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DraggableTextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.EditTextDialog
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.MemeEditorBottomBar
+import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.TextEditorOption.FontFamily
 import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
@@ -131,8 +133,14 @@ fun MemeEditorScreen(
             } else {
                 BottomBarLayout.Default
             }
+            // Get current text box style properties
+            val currentColor =
+                state.currentEditingTextBox?.style?.color?.toFillColor() ?: Color.White
+
             MemeEditorBottomBar(
                 currentLayout = currentLayout,
+                selectedColor = currentColor,
+                selectedFontSize = state.currentEditingTextBox?.style?.fontSize ?: 16f,
                 onUndo = { onAction(MemeEditorAction.Undo) },
                 onRedo = { onAction(MemeEditorAction.Redo) },
                 onAddTextBox = { onAction(MemeEditorAction.AddTextBox) },
@@ -146,16 +154,19 @@ fun MemeEditorScreen(
                 onFontFamilySelected = { onAction(MemeEditorAction.ToggleFont) },
                 onFontSizeChanged = { onAction(MemeEditorAction.UpdateFontSize(it)) },
                 onColorSelected = { color ->
-                    val memeColor = when {
-                        color == Color.White -> MemeTextColor.WHITE
-                        color == Color.Red -> MemeTextColor.RED
-                        // Add other color mappings as needed
+                    // Convert back to MemeTextColor
+                    val memeColor = when (color) {
+                        Color.White -> MemeTextColor.WHITE
+                        Color.Red -> MemeTextColor.RED
+                        Color.Green -> MemeTextColor.GREEN
+                        Color.Blue -> MemeTextColor.BLUE
                         else -> MemeTextColor.WHITE
                     }
                     onAction(MemeEditorAction.UpdateTextColor(memeColor))
                 }
             )
         }
+
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -211,54 +222,54 @@ fun MemeEditorScreen(
             }
 
             // Bottom control panel
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                var lastIdSelected by remember {
-                    mutableIntStateOf(
-                        state.currentEditingTextBox?.id ?: -1
-                    )
-                }
-
-                state.currentEditingTextBox?.let {
-                    var fontSize by remember { mutableFloatStateOf(it.style.fontSize) }
-
-                    if (lastIdSelected != it.id) {
-                        lastIdSelected = it.id
-                        fontSize = it.style.fontSize
-                    }
-
-                    AppSlider(
-                        value = fontSize,
-                        onValueChange = { newFontSize ->
-                            fontSize = newFontSize
-                            onAction(MemeEditorAction.UpdateFontSize(newFontSize))
-                        },
-                        valueRange = 24f..48f
-                    )
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { onAction(MemeEditorAction.ToggleFont) }) {
-                            Text(if (it.style.font == MemeFont.IMPACT) "Impact" else "System")
-                        }
-                        Button(onClick = {
-                            onAction(MemeEditorAction.UpdateTextColor(MemeTextColor.WHITE))
-                        }) {
-                            Text("White")
-                        }
-                        Button(onClick = {
-                            onAction(MemeEditorAction.UpdateTextColor(MemeTextColor.RED))
-                        }) {
-                            Text("Red")
-                        }
-                    }
-                }
-
-
-            }
+//            Column(
+//                modifier = Modifier
+//                    .align(Alignment.BottomCenter)
+//                    .padding(16.dp),
+//                verticalArrangement = Arrangement.spacedBy(8.dp)
+//            ) {
+//                var lastIdSelected by remember {
+//                    mutableIntStateOf(
+//                        state.currentEditingTextBox?.id ?: -1
+//                    )
+//                }
+//
+//                state.currentEditingTextBox?.let {
+//                    var fontSize by remember { mutableFloatStateOf(it.style.fontSize) }
+//
+//                    if (lastIdSelected != it.id) {
+//                        lastIdSelected = it.id
+//                        fontSize = it.style.fontSize
+//                    }
+//
+//                    AppSlider(
+//                        value = fontSize,
+//                        onValueChange = { newFontSize ->
+//                            fontSize = newFontSize
+//                            onAction(MemeEditorAction.UpdateFontSize(newFontSize))
+//                        },
+//                        valueRange = 24f..48f
+//                    )
+//
+//                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+//                        Button(onClick = { onAction(MemeEditorAction.ToggleFont) }) {
+//                            Text(if (it.style.font == MemeFont.IMPACT) "Impact" else "System")
+//                        }
+//                        Button(onClick = {
+//                            onAction(MemeEditorAction.UpdateTextColor(MemeTextColor.WHITE))
+//                        }) {
+//                            Text("White")
+//                        }
+//                        Button(onClick = {
+//                            onAction(MemeEditorAction.UpdateTextColor(MemeTextColor.RED))
+//                        }) {
+//                            Text("Red")
+//                        }
+//                    }
+//                }
+//
+//
+//            }
 
             if (state.showEditDialog && state.currentEditingTextBox != null) {
                 EditTextDialog(

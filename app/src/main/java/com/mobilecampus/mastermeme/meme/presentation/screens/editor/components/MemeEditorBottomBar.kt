@@ -1,5 +1,6 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor.components
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,6 +42,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +60,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.mobilecampus.mastermeme.core.presentation.design_system.MasterMemeBackground
+import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.ui.theme.ExtendedTheme
 
 sealed class BottomBarLayout {
@@ -74,6 +77,9 @@ sealed class TextEditorOption {
 @Composable
 fun MemeEditorBottomBar(
     currentLayout: BottomBarLayout,
+    selectedColor: Color,
+    selectedFontFamily: FontFamily = FontFamily.Default,
+    selectedFontSize: Float = 16f,
     modifier: Modifier = Modifier,
     onUndo: () -> Unit = {},
     onRedo: () -> Unit = {},
@@ -99,10 +105,16 @@ fun MemeEditorBottomBar(
             ) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     when (selectedOption) {
-                        TextEditorOption.FontFamily -> FontFamilySelector(onFontFamilySelected)
-                        TextEditorOption.FontSize -> FontSizeSelector(onFontSizeChanged)
+                        TextEditorOption.FontFamily -> FontFamilySelector(
+                            selectedFontFamily = selectedFontFamily,
+                            onSelected = onFontFamilySelected
+                        )
+                        TextEditorOption.FontSize -> FontSizeSelector(
+                            selectedFontSize = selectedFontSize,  // Use the parameter
+                            onSizeChanged = onFontSizeChanged
+                        )
                         TextEditorOption.ColorPicker -> ColorSelector(
-                            selectedColor = Color.Black,
+                            selectedColor = selectedColor,  // Use the parameter
                             onColorSelected = onColorSelected
                         )
                         null -> {}
@@ -284,7 +296,10 @@ private fun EditorOptionButton(
 }
 
 @Composable
-private fun FontFamilySelector(onSelected: (FontFamily) -> Unit) {
+private fun FontFamilySelector(
+    selectedFontFamily: FontFamily = FontFamily.Default,
+    onSelected: (FontFamily) -> Unit
+) {
     val fontFamilies = listOf(
         FontFamily.Default to "Default",
         FontFamily.Serif to "Serif",
@@ -318,8 +333,11 @@ private fun FontFamilySelector(onSelected: (FontFamily) -> Unit) {
 }
 
 @Composable
-private fun FontSizeSelector(onSizeChanged: (Float) -> Unit) {
-    var fontSize by remember { mutableFloatStateOf(16f) }
+private fun FontSizeSelector(
+    selectedFontSize: Float,
+    onSizeChanged: (Float) -> Unit
+) {
+    var fontSize by remember { mutableFloatStateOf(selectedFontSize) }
 
     Slider(
         value = fontSize,
@@ -337,27 +355,23 @@ private fun ColorSelector(
     selectedColor: Color,
     onColorSelected: (Color) -> Unit
 ) {
-    val colors = listOf(
-        Color.White,
-        Color.Black,
-        Color.Red,
-        Color.Green,
-        Color.Blue,
-        Color.Yellow,
-        Color.Cyan,
-        Color.Magenta
-    )
+    // Use MemeTextColor.values() instead of hardcoded Color list
+    val memeColors = MemeTextColor.entries.toTypedArray()
 
     LazyRow(
         modifier = Modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        items(colors) { color ->
+        items(memeColors) { memeColor ->
+            val actualColor = memeColor.toFillColor()
+            // Compare with the fill color of the MemeTextColor
+            val isSelected = actualColor == selectedColor
+
             ColorCircle(
-                color = color,
-                isSelected = color == selectedColor,
-                onClick = { onColorSelected(color) }
+                color = actualColor,
+                isSelected = isSelected,
+                onClick = { onColorSelected(actualColor) }
             )
         }
     }
@@ -370,6 +384,8 @@ private fun ColorCircle(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    Log.d("ColorCircle", "Color: $color, isSelected: $isSelected")
+
     val size = 48.dp
     val selectionRingSize = size * 1.3f
     val selectionRingColor = Color(0x33606060)
@@ -383,7 +399,6 @@ private fun ColorCircle(
                 onClick = onClick
             )
     ) {
-
         if (isSelected) {
             // Draw selection ring
             drawCircle(
@@ -422,26 +437,31 @@ fun MemeEditorBottomBarPreview() {
         ) {
             MemeEditorBottomBar(
                 modifier = Modifier.systemBarsPadding(),
-                currentLayout = BottomBarLayout.TextEditor
+                currentLayout = BottomBarLayout.TextEditor,
+                selectedColor = Color.Red
             )
             MemeEditorBottomBar(
                 modifier = Modifier.systemBarsPadding(),
-                currentLayout = BottomBarLayout.Default
+                currentLayout = BottomBarLayout.Default,
+                selectedColor = Color.Red
             )
         }
 
     }
 }
+
 @Preview
 @Composable
 fun FontFamilySelectorPreview() {
     FontFamilySelector(onSelected = {})
 }
+
 @Preview
 @Composable
 private fun FontSizeSelectorPreview() {
-    FontSizeSelector({})
+    FontSizeSelector(selectedFontSize = 16f,{})
 }
+
 @Preview(showBackground = true)
 @Composable
 fun ColorSelectorPreview() {
@@ -452,6 +472,7 @@ fun ColorSelectorPreview() {
         )
     }
 }
+
 @Preview
 @Composable
 fun ColorCirclePreview() {
