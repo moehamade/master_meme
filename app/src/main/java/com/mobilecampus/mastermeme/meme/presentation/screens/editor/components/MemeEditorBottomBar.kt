@@ -21,6 +21,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Redo
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FontDownload
@@ -45,11 +47,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.mobilecampus.mastermeme.ui.theme.ExtendedTheme
 import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 
 sealed class BottomBarLayout {
@@ -140,13 +144,13 @@ private fun RowScope.DefaultBottomBarContent(
     onSaveMeme: () -> Unit
 ) {
     EditorIconButton(
-        icon = Icons.Default.Undo,
+        icon = Icons.AutoMirrored.Filled.Undo,
         onClick = onUndo,
-        enabled = true
+        enabled = false
     )
 
     EditorIconButton(
-        icon = Icons.Default.Redo,
+        icon = Icons.AutoMirrored.Filled.Redo,
         onClick = onRedo,
         enabled = false
     )
@@ -155,7 +159,17 @@ private fun RowScope.DefaultBottomBarContent(
 
     OutlinedButton(
         onClick = onAddTextBox,
-        shape = MaterialTheme.shapes.small
+        shape = MaterialTheme.shapes.small,
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = MaterialTheme.colorScheme.primaryContainer,
+        ),
+        border = ButtonDefaults.outlinedButtonBorder().copy(
+            width = 1.dp,
+            brush = Brush.horizontalGradient(
+                colors = ExtendedTheme.colorScheme.buttonDefault
+            )
+        )
+
     ) {
         Text("Add Text", style = MaterialTheme.typography.labelLarge)
     }
@@ -167,7 +181,7 @@ private fun RowScope.DefaultBottomBarContent(
         shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            contentColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
         Text("Save Meme", style = MaterialTheme.typography.labelLarge)
