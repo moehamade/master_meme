@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -125,17 +126,34 @@ fun MemeEditorScreen(
             )
         },
         bottomBar = {
+            val currentLayout = if (state.currentEditingTextBox != null) {
+                BottomBarLayout.TextEditor
+            } else {
+                BottomBarLayout.Default
+            }
             MemeEditorBottomBar(
-                currentLayout = BottomBarLayout.Default,
+                currentLayout = currentLayout,
                 onUndo = { onAction(MemeEditorAction.Undo) },
                 onRedo = { onAction(MemeEditorAction.Redo) },
                 onAddTextBox = { onAction(MemeEditorAction.AddTextBox) },
                 onSaveMeme = { onAction(MemeEditorAction.SaveMeme(resId)) },
                 onDismissTextEditor = { onAction(MemeEditorAction.CancelEditing) },
-                onConfirmTextEdit = {},
-                onFontFamilySelected = { },
+                onConfirmTextEdit = {
+                    state.currentEditingTextBox?.let { textBox ->
+                        onAction(MemeEditorAction.ConfirmTextChange(textBox.text))
+                    }
+                },
+                onFontFamilySelected = { onAction(MemeEditorAction.ToggleFont) },
                 onFontSizeChanged = { onAction(MemeEditorAction.UpdateFontSize(it)) },
-                onColorSelected = {}
+                onColorSelected = { color ->
+                    val memeColor = when {
+                        color == Color.White -> MemeTextColor.WHITE
+                        color == Color.Red -> MemeTextColor.RED
+                        // Add other color mappings as needed
+                        else -> MemeTextColor.WHITE
+                    }
+                    onAction(MemeEditorAction.UpdateTextColor(memeColor))
+                }
             )
         }
     ) { paddingValues ->
