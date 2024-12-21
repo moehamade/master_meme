@@ -36,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -47,8 +48,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons.meme
 import com.mobilecampus.mastermeme.core.presentation.design_system.RoundedCheckbox
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
+import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty1
@@ -136,7 +139,6 @@ fun Modifier.gridItemAnimation(
 }
 
 
-
 fun LazyGridScope.templates(
     templates: List<MemeItem.Template>,
     onTemplateClick: (MemeItem.Template) -> Unit,
@@ -201,7 +203,6 @@ fun AnimatedTemplateGrid(
 
 fun LazyGridScope.userMemes(
     memes: List<MemeItem.ImageMeme>,
-    state: LazyGridState,
     onMemeTap: (MemeItem.ImageMeme) -> Unit,
     onFavoriteToggle: (MemeItem.ImageMeme) -> Unit,
     itemSpacing: Dp,
@@ -211,13 +212,8 @@ fun LazyGridScope.userMemes(
 ) {
     itemsIndexed(
         items = memes,
-        key = { index, meme ->
-            if (index == 0) {
-                "first_${meme.id}"
-            } else {
-                "item_${meme.id}"
-            }
-        }    ) { index, meme ->
+        key = { index, meme -> meme.hashCode()}
+    ) { index, meme ->
         Box(
             modifier = Modifier
                 .gridItemAnimation(index = index)
@@ -261,7 +257,11 @@ fun UserMemeGrid(
     isSelectionMode: Boolean = false,
     selectedMemes: Set<Int> = emptySet(),
     onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit,
+    sortOption: SortOption
 ) {
+    LaunchedEffect(sortOption) {
+        state.scrollToItem(0)
+    }
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         modifier = modifier,
@@ -272,7 +272,6 @@ fun UserMemeGrid(
     ) {
         userMemes(
             memes = memes,
-            state = state,
             onMemeTap = onMemeTap,
             onFavoriteToggle = onFavoriteToggle,
             itemSpacing = itemSpacing,

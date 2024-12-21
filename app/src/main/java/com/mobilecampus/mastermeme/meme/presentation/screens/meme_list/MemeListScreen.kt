@@ -217,6 +217,7 @@ fun MemeListScreen(
                                 onSelectionToggle = { meme, _ ->
                                     onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
                                 },
+                                sortOption = state.sortOption,
                             )
                         }
                     }
