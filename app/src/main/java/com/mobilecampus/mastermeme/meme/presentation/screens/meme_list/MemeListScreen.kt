@@ -4,6 +4,10 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -45,6 +49,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -59,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -249,12 +256,33 @@ fun MemeListScreen(
                     },
                     sheetState = sheetState,
                     contentWindowInsets = { WindowInsets(0) },
+                    dragHandle = {
+                        val isExpanded = sheetState.currentValue == SheetValue.Expanded
+                        val topPadding by animateFloatAsState(
+                            targetValue = if (isExpanded && state.isSearchActive == false) 1f else 0f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            ),
+                            label = "padding"
+                        )
+
+                        val statusBarHeight = with(LocalDensity.current) {
+                            WindowInsets.statusBars.getTop(this).toDp()
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .padding(top = (statusBarHeight * topPadding))
+                        ) {
+                            BottomSheetDefaults.DragHandle()
+                        }
+                    },
                     properties = ModalBottomSheetProperties(
                         shouldDismissOnBackPress = true
                     )
                 ) {
                     Box(Modifier) {
-
                         TemplateSelectionContent(
                             templates = state.filteredTemplates,
                             onTemplateSelected = { template ->
@@ -282,7 +310,6 @@ fun MemeListScreen(
                                 .height(70.dp)
                         )
                     }
-
                 }
             }
 
