@@ -19,8 +19,11 @@ import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.MemeListS
 import kotlinx.serialization.Serializable
 
 sealed interface NavGraph {
-    @Serializable data object MemeList: NavGraph
-    @Serializable data class MemeEditor(@DrawableRes val resId: Int): NavGraph
+    @Serializable
+    data object MemeList : NavGraph
+
+    @Serializable
+    data class MemeEditor(@DrawableRes val resId: Int) : NavGraph
 }
 
 @Composable
@@ -36,23 +39,26 @@ fun NavigationRoot(
                 .fillMaxSize()
                 .padding(
                     PaddingValues(
-//                        bottom = innerPadding.calculateBottomPadding(),
+                        bottom = innerPadding.calculateBottomPadding(),
                         start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
                         end = innerPadding.calculateEndPadding(LayoutDirection.Ltr)
                     )
                 )
         ) {
             composable<NavGraph.MemeList> {
-                MemeListScreenRoot({ resId ->
+                MemeListScreenRoot { resId ->
                     navController.navigate(NavGraph.MemeEditor(resId))
-                })
+                }
             }
 
             composable<NavGraph.MemeEditor> {
                 val args = it.toRoute<NavGraph.MemeEditor>()
-               MemeEditorScreenRoot(backgroundImageResId = args.resId, onNavigateBack = {
-                   navController.navigateUp()
-               })
+                MemeEditorScreenRoot(
+                    backgroundImageResId = args.resId,
+                    onNavigateBack = {
+                        navController.navigateUp()
+                    }
+                )
             }
         }
     }

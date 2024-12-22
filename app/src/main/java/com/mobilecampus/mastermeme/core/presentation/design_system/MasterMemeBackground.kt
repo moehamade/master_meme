@@ -26,7 +26,6 @@ fun MasterMemeBackground(
             }
         }
     }
-
 }
 
 @Preview

@@ -93,7 +93,7 @@ fun AppSlider(
 @Composable
 private fun AppSliderPreview() {
     MasterMemeTheme {
-        var slider1 by remember { mutableFloatStateOf(0.0f) }
+        var slider1 by remember { mutableFloatStateOf(0.2f) }
         AppSlider(
             value = slider1,
             onValueChange = { newValue -> slider1 = newValue },

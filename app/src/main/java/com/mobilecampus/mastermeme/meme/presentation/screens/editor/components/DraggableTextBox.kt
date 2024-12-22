@@ -7,8 +7,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,10 +30,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
+import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -40,10 +44,10 @@ fun DraggableTextBox(
     textBox: TextBox,
     imageOffset: Offset,
     imageSize: IntSize,
-    onPositionChanged: (Offset) -> Unit,
-    onDelete: () -> Unit,
-    onDoubleClick: () -> Unit,
-    onSelect: () -> Unit,
+    onPositionChanged: (Offset) -> Unit = {},
+    onDelete: () -> Unit = {},
+    onDoubleClick: () -> Unit = {},
+    onSelect: () -> Unit = {},
     isSelected: Boolean = false
 ) {
     var isDragging by remember { mutableStateOf(false) }
@@ -131,6 +135,24 @@ fun DraggableTextBox(
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+private fun DraggableTextBoxPreview() {
+    MasterMemeTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.Center)
+        ) {
+            DraggableTextBox(
+                textBox = TextBox(id = 0, text = "text"),
+                imageOffset = Offset(0f, 0f),
+                imageSize = IntSize(20, 20),
             )
         }
     }
