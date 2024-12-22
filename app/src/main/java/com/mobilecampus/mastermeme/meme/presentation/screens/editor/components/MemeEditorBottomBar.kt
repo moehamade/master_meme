@@ -109,14 +109,17 @@ fun MemeEditorBottomBar(
                             selectedFontFamily = selectedFontFamily,
                             onSelected = onFontFamilySelected
                         )
+
                         TextEditorOption.FontSize -> FontSizeSelector(
                             selectedFontSize = selectedFontSize,  // Use the parameter
                             onSizeChanged = onFontSizeChanged
                         )
+
                         TextEditorOption.ColorPicker -> ColorSelector(
                             selectedColor = selectedColor,  // Use the parameter
                             onColorSelected = onColorSelected
                         )
+
                         null -> {}
                     }
                 }
@@ -340,14 +343,13 @@ private fun FontSizeSelector(
 ) {
     var fontSize by remember { mutableFloatStateOf(selectedFontSize) }
 
-    Slider(
+    AppSlider(
         value = fontSize,
         onValueChange = {
             fontSize = it
             onSizeChanged(it)
         },
         valueRange = 12f..72f,
-        modifier = Modifier.fillMaxWidth()
     )
 }
 
@@ -396,7 +398,7 @@ private fun ColorCircle(
             .size(selectionRingSize)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = ripple(bounded = false, radius = size/2),
+                indication = ripple(bounded = false, radius = size / 2),
                 onClick = onClick
             )
     ) {
@@ -460,7 +462,7 @@ fun FontFamilySelectorPreview() {
 @Preview
 @Composable
 private fun FontSizeSelectorPreview() {
-    FontSizeSelector(selectedFontSize = 16f,{})
+    FontSizeSelector(selectedFontSize = 16f, {})
 }
 
 @Preview(showBackground = true)
