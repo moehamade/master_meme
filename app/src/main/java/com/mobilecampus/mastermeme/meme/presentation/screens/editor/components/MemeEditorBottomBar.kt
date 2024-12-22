@@ -421,9 +421,9 @@ private fun ColorCircle(
 ) {
     Log.d("ColorCircle", "Color: $color, isSelected: $isSelected")
 
-    val size = 48.dp
-    val selectionRingSize = size * 1.3f
-    val selectionRingColor = Color(0x33606060)
+    val size = 32.dp
+    val selectionRingSize = size * 1.4f
+    val selectionRingColor = Color(0x33FFFFFF)
 
     Canvas(
         modifier = modifier
