@@ -1,7 +1,10 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor.components
 
+import android.R.attr.onClick
 import android.util.Log
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -35,6 +38,8 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -56,9 +61,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.MasterMemeBackground
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.ui.theme.ExtendedTheme
@@ -109,14 +118,17 @@ fun MemeEditorBottomBar(
                             selectedFontFamily = selectedFontFamily,
                             onSelected = onFontFamilySelected
                         )
+
                         TextEditorOption.FontSize -> FontSizeSelector(
                             selectedFontSize = selectedFontSize,  // Use the parameter
                             onSizeChanged = onFontSizeChanged
                         )
+
                         TextEditorOption.ColorPicker -> ColorSelector(
                             selectedColor = selectedColor,  // Use the parameter
                             onColorSelected = onColorSelected
                         )
+
                         null -> {}
                     }
                 }
@@ -229,7 +241,7 @@ private fun RowScope.TextEditorBottomBarContent(
         verticalAlignment = Alignment.CenterVertically
     ) {
         EditorOptionButton(
-            icon = Icons.Default.FontDownload,
+            resId = R.drawable.icon_typography,
             isSelected = selectedOption == TextEditorOption.FontFamily,
             onClick = {
                 onOptionSelected(
@@ -240,7 +252,7 @@ private fun RowScope.TextEditorBottomBarContent(
         )
         Spacer(modifier = Modifier.width(8.dp))
         EditorOptionButton(
-            icon = Icons.Default.FormatSize,
+            resId = R.drawable.icon_text_size,
             isSelected = selectedOption == TextEditorOption.FontSize,
             onClick = {
                 onOptionSelected(
@@ -251,7 +263,7 @@ private fun RowScope.TextEditorBottomBarContent(
         )
         Spacer(modifier = Modifier.width(8.dp))
         EditorOptionButton(
-            icon = Icons.Default.Palette,
+            resId = R.drawable.icon_text_color,
             isSelected = selectedOption == TextEditorOption.ColorPicker,
             onClick = {
                 onOptionSelected(
@@ -276,24 +288,37 @@ private fun RowScope.TextEditorBottomBarContent(
 
 @Composable
 private fun EditorOptionButton(
-    icon: ImageVector,
+    @DrawableRes resId: Int,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Box(
+    IconButton(
+        onClick = onClick,
+        interactionSource = remember {
+            MutableInteractionSource(
+
+            )
+        },
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .background(
                 if (isSelected) Color(0xFF2A2930)
                 else Color.Transparent
+            ),
+        content = {
+            Image(
+                modifier = Modifier
+                    .padding(2.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onClick
+                    ),
+                painter = painterResource(id = resId),
+                contentDescription = null,
             )
-    ) {
-        EditorIconButton(
-            icon = icon,
-            backgroundColor = Color.Transparent,
-            onClick = onClick
-        )
-    }
+        },
+    )
 }
 
 @Composable
@@ -317,16 +342,26 @@ private fun FontFamilySelector(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.clickable { onSelected(fontFamily) }
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        if (selectedFontFamily == fontFamily) {
+                            Color(0xFF2B2930)
+                        } else {
+                            Color.Transparent
+                        }
+                    )
+                    .clickable { onSelected(fontFamily) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = "Good",
                     fontFamily = fontFamily,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.headlineLarge.copy(fontSize = 28.sp)
                 )
                 Text(
                     text = name,
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp)
                 )
             }
         }
@@ -340,14 +375,13 @@ private fun FontSizeSelector(
 ) {
     var fontSize by remember { mutableFloatStateOf(selectedFontSize) }
 
-    Slider(
+    AppSlider(
         value = fontSize,
         onValueChange = {
             fontSize = it
             onSizeChanged(it)
         },
         valueRange = 12f..72f,
-        modifier = Modifier.fillMaxWidth()
     )
 }
 
@@ -387,16 +421,16 @@ private fun ColorCircle(
 ) {
     Log.d("ColorCircle", "Color: $color, isSelected: $isSelected")
 
-    val size = 48.dp
-    val selectionRingSize = size * 1.3f
-    val selectionRingColor = Color(0x33606060)
+    val size = 32.dp
+    val selectionRingSize = size * 1.4f
+    val selectionRingColor = Color(0x33FFFFFF)
 
     Canvas(
         modifier = modifier
             .size(selectionRingSize)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = ripple(bounded = false, radius = size/2),
+                indication = ripple(bounded = false, radius = size / 2),
                 onClick = onClick
             )
     ) {
@@ -460,7 +494,7 @@ fun FontFamilySelectorPreview() {
 @Preview
 @Composable
 private fun FontSizeSelectorPreview() {
-    FontSizeSelector(selectedFontSize = 16f,{})
+    FontSizeSelector(selectedFontSize = 16f, {})
 }
 
 @Preview(showBackground = true)
