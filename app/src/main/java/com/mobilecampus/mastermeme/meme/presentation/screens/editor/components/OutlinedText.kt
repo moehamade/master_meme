@@ -6,6 +6,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -30,9 +31,15 @@ fun OutlinedText(
     val context = LocalContext.current
 
     val typeface = when (style.font) {
-        MemeFont.IMPACT ->
-            ResourcesCompat.getFont(context, R.font.impact)
+        MemeFont.IMPACT -> ResourcesCompat.getFont(context, R.font.impact)
         MemeFont.SYSTEM -> Typeface.DEFAULT_BOLD
+        MemeFont.ROBOTO_BOLD -> Typeface.DEFAULT_BOLD
+        MemeFont.COMIC -> Typeface.SANS_SERIF
+        MemeFont.STROKE,
+        MemeFont.OUTLINE -> Typeface.DEFAULT_BOLD
+        MemeFont.SHADOWED -> Typeface.DEFAULT_BOLD
+        MemeFont.RETRO -> Typeface.DEFAULT_BOLD
+        MemeFont.HANDWRITTEN -> Typeface.SERIF
     }
 
     val textMeasurePaint = Paint().apply {
@@ -63,21 +70,51 @@ fun OutlinedText(
             this.typeface = typeface
             strokeJoin = Paint.Join.ROUND
             strokeCap = Paint.Cap.ROUND
+
+            // Copy letter spacing from measure paint
+            letterSpacing = textMeasurePaint.letterSpacing
         }
 
         val x = totalPaddingHorizontalPx
         val y = -paint.ascent() + totalPaddingVerticalPx
 
-        // Outline
-        paint.style = Paint.Style.STROKE
-        paint.color = style.color.toOutlineColor().toArgb()
-        paint.strokeWidth = outlineWidth
-        drawContext.canvas.nativeCanvas.drawText(text, x, y, paint)
+        when (style.font) {
+            MemeFont.STROKE -> {
+                // Only stroke, no fill
+                paint.style = Paint.Style.STROKE
+                paint.color = style.color.toFillColor().toArgb()
+                paint.strokeWidth = outlineWidth * 1.5f
+                drawContext.canvas.nativeCanvas.drawText(text, x, y, paint)
+            }
+            MemeFont.SHADOWED -> {
+                // Draw shadow first
+                paint.style = Paint.Style.FILL
+                paint.setShadowLayer(
+                    outlineWidth * 1.5f,
+                    outlineWidth * 0.5f,
+                    outlineWidth * 0.5f,
+                    Color.Black.toArgb()
+                )
+                paint.color = style.color.toFillColor().toArgb()
+                drawContext.canvas.nativeCanvas.drawText(text, x, y, paint)
 
-        // Fill
-        paint.style = Paint.Style.FILL
-        paint.color = style.color.toFillColor().toArgb()
-        drawContext.canvas.nativeCanvas.drawText(text, x, y, paint)
+                // Clear shadow for main text
+                paint.clearShadowLayer()
+            }
+            else -> {
+                // Standard outline and fill for other fonts
+                // Outline
+                paint.style = Paint.Style.STROKE
+                paint.color = style.color.toOutlineColor().toArgb()
+                paint.strokeWidth = outlineWidth
+                drawContext.canvas.nativeCanvas.drawText(text, x, y, paint)
+
+                // Fill
+                paint.style = Paint.Style.FILL
+                paint.color = style.color.toFillColor().toArgb()
+                drawContext.canvas.nativeCanvas.drawText(text, x, y, paint)
+            }
+        }
     }
 }
 

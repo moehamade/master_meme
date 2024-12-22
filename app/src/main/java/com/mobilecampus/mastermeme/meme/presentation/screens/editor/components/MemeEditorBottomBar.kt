@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -333,20 +334,16 @@ private fun EditorOptionButton(
 
 @Composable
 private fun FontFamilySelector(
-    selectedFont: MemeFont,  // Change to use MemeFont instead of FontFamily
+    selectedFont: MemeFont,
     onSelected: (MemeFont) -> Unit
 ) {
-    val fontOptions = listOf(
-        MemeFont.IMPACT to "Impact",
-        MemeFont.SYSTEM to "System"
-    )
-
     LazyRow(
         modifier = Modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
-        items(fontOptions) { (font, name) ->
+        items(MemeFont.entries.toList()) { font ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -362,19 +359,21 @@ private fun FontFamilySelector(
                     .clickable { onSelected(font) }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
+                // Preview text with font style
                 Text(
                     text = "Good",
-                    style = when (font) {
-                        MemeFont.IMPACT -> MaterialTheme.typography.headlineLarge
-                        MemeFont.SYSTEM -> MaterialTheme.typography.headlineLarge.copy(
-                            fontFamily = FontFamily.SansSerif
-                        )
-                    },
-                    fontSize = 28.sp
+                    style = font.toTextStyle(
+                        color = if (selectedFont == font) Color.White else Color.Unspecified,
+                        fontSize = 28f
+                    ),
                 )
+                // Font name
                 Text(
-                    text = name,
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp)
+                    text = font.displayName,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 10.sp,
+                        color = if (selectedFont == font) Color.White else Color.Unspecified
+                    )
                 )
             }
         }
