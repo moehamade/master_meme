@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.mobilecampus.mastermeme.core.presentation.design_system.MasterMemeBackground
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.ui.theme.ExtendedTheme
@@ -325,11 +326,11 @@ private fun FontFamilySelector(
                 Text(
                     text = "Good",
                     fontFamily = fontFamily,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.headlineLarge.copy(fontSize = 28.sp)
                 )
                 Text(
                     text = name,
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp)
                 )
             }
         }
