@@ -243,6 +243,7 @@ fun MemeListScreen(
                                     onAction(MemeListAction.ToggleMemeSelection(meme.id!!))
                                 },
                                 sortOption = state.sortOption,
+                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 80.dp)
                             )
                         }
                     }
