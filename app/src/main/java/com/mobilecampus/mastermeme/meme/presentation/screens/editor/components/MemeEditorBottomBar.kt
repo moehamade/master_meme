@@ -2,6 +2,9 @@ package com.mobilecampus.mastermeme.meme.presentation.screens.editor.components
 
 import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -77,6 +80,8 @@ fun MemeEditorBottomBar(
     selectedColor: Color,
     selectedFontFamily: FontFamily = FontFamily.Default,
     selectedFontSize: Float = 16f,
+    canUndo: Boolean,
+    canRedo: Boolean,
     modifier: Modifier = Modifier,
     onUndo: () -> Unit = {},
     onRedo: () -> Unit = {},
@@ -84,7 +89,7 @@ fun MemeEditorBottomBar(
     onSaveMeme: () -> Unit = {},
     onDismissTextEditor: () -> Unit = {},
     onConfirmTextEdit: () -> Unit = {},
-    onFontFamilySelected: (FontFamily) -> Unit = {},
+    onFontFamilySelected: () -> Unit = {}, // Simplified to just toggle
     onFontSizeChanged: (Float) -> Unit = {},
     onColorSelected: (Color) -> Unit = {}
 ) {
@@ -92,7 +97,11 @@ fun MemeEditorBottomBar(
 
     Column(modifier = modifier) {
         // Optional content above the BottomAppBar based on selection
-        if (currentLayout == BottomBarLayout.TextEditor && selectedOption != null) {
+        AnimatedVisibility(
+            visible = currentLayout == BottomBarLayout.TextEditor && selectedOption != null,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -104,16 +113,16 @@ fun MemeEditorBottomBar(
                     when (selectedOption) {
                         TextEditorOption.FontFamily -> FontFamilySelector(
                             selectedFontFamily = selectedFontFamily,
-                            onSelected = onFontFamilySelected
+                            onSelected = { onFontFamilySelected() } // Just toggle font
                         )
 
                         TextEditorOption.FontSize -> FontSizeSelector(
-                            selectedFontSize = selectedFontSize,  // Use the parameter
+                            selectedFontSize = selectedFontSize,
                             onSizeChanged = onFontSizeChanged
                         )
 
                         TextEditorOption.ColorPicker -> ColorSelector(
-                            selectedColor = selectedColor,  // Use the parameter
+                            selectedColor = selectedColor,
                             onColorSelected = onColorSelected
                         )
 
@@ -124,8 +133,7 @@ fun MemeEditorBottomBar(
         }
 
         BottomAppBar(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = MaterialTheme.colorScheme.onSurface,
             windowInsets = WindowInsets(
@@ -138,6 +146,8 @@ fun MemeEditorBottomBar(
         ) {
             when (currentLayout) {
                 BottomBarLayout.Default -> DefaultBottomBarContent(
+                    canUndo = canUndo,
+                    canRedo = canRedo,
                     onUndo = onUndo,
                     onRedo = onRedo,
                     onAddTextBox = onAddTextBox,
@@ -146,17 +156,29 @@ fun MemeEditorBottomBar(
 
                 BottomBarLayout.TextEditor -> TextEditorBottomBarContent(
                     selectedOption = selectedOption,
-                    onOptionSelected = { selectedOption = it },
-                    onDismiss = onDismissTextEditor,
-                    onConfirm = onConfirmTextEdit
+                    onOptionSelected = { option ->
+                        selectedOption = if (selectedOption == option) null else option
+                    },
+                    onDismiss = {
+                        selectedOption = null
+                        onDismissTextEditor()
+                    },
+                    onConfirm = {
+                        selectedOption = null
+                        onConfirmTextEdit()
+                    }
                 )
             }
         }
     }
 }
 
+
+
 @Composable
 private fun RowScope.DefaultBottomBarContent(
+    canUndo: Boolean,
+    canRedo: Boolean,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onAddTextBox: () -> Unit,
@@ -165,13 +187,13 @@ private fun RowScope.DefaultBottomBarContent(
     EditorIconButton(
         icon = Icons.AutoMirrored.Filled.Undo,
         onClick = onUndo,
-        enabled = false
+        enabled = canUndo
     )
 
     EditorIconButton(
         icon = Icons.AutoMirrored.Filled.Redo,
         onClick = onRedo,
-        enabled = false
+        enabled = canRedo
     )
 
     Spacer(modifier = Modifier.weight(1f))
@@ -188,7 +210,6 @@ private fun RowScope.DefaultBottomBarContent(
                 colors = ExtendedTheme.colorScheme.buttonDefault
             )
         )
-
     ) {
         Text("Add Text", style = MaterialTheme.typography.labelLarge)
     }
@@ -378,7 +399,6 @@ private fun ColorSelector(
     selectedColor: Color,
     onColorSelected: (Color) -> Unit
 ) {
-    // Use MemeTextColor.values() instead of hardcoded Color list
     val memeColors = MemeTextColor.entries.toTypedArray()
 
     LazyRow(
@@ -388,7 +408,6 @@ private fun ColorSelector(
     ) {
         items(memeColors) { memeColor ->
             val actualColor = memeColor.toFillColor()
-            // Compare with the fill color of the MemeTextColor
             val isSelected = actualColor == selectedColor
 
             ColorCircle(
@@ -461,12 +480,16 @@ fun MemeEditorBottomBarPreview() {
             MemeEditorBottomBar(
                 modifier = Modifier.systemBarsPadding(),
                 currentLayout = BottomBarLayout.TextEditor,
-                selectedColor = Color.Red
+                selectedColor = Color.Red,
+                canRedo = true,
+                canUndo = false
             )
             MemeEditorBottomBar(
                 modifier = Modifier.systemBarsPadding(),
                 currentLayout = BottomBarLayout.Default,
-                selectedColor = Color.Red
+                selectedColor = Color.Red,
+                canRedo = false,
+                canUndo = true
             )
         }
 

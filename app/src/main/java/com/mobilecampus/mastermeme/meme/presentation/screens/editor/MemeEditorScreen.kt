@@ -99,8 +99,6 @@ fun MemeEditorScreen(
     onAction: (MemeEditorAction) -> Unit,
 ) {
     val context = LocalContext.current
-
-    // Load the image as an ImageBitmap and calculate its aspect ratio
     val imageBitmap = ImageBitmap.imageResource(context.resources, resId)
     val imageAspectRatio = imageBitmap.width.toFloat() / imageBitmap.height.toFloat()
 
@@ -109,15 +107,12 @@ fun MemeEditorScreen(
             CenterAlignedAppTopAppBar(
                 title = "Edit Meme",
                 navigationIcon = {
-                    IconButton(onClick = {
-                        onAction(MemeEditorAction.OnArrowBackClick)
-                    }) {
+                    IconButton(onClick = { onAction(MemeEditorAction.OnArrowBackClick) }) {
                         Icon(
                             imageVector = AppIcons.arrowBack,
                             contentDescription = "Back"
                         )
                     }
-
                 }
             )
         },
@@ -127,28 +122,29 @@ fun MemeEditorScreen(
             } else {
                 BottomBarLayout.Default
             }
-            // Get current text box style properties
-            val currentColor =
-                state.currentEditingTextBox?.style?.color?.toFillColor() ?: Color.White
+
+            val currentTextBox = state.currentEditingTextBox
 
             MemeEditorBottomBar(
                 currentLayout = currentLayout,
-                selectedColor = currentColor,
-                selectedFontSize = state.currentEditingTextBox?.style?.fontSize ?: 16f,
+                selectedColor = currentTextBox?.style?.color?.toFillColor() ?: Color.White,
+                selectedFontFamily = androidx.compose.ui.text.font.FontFamily.Default, // This doesn't matter as we're just toggling
+                selectedFontSize = currentTextBox?.style?.fontSize ?: 36f,
+                canUndo = state.undoStack.isNotEmpty(),
+                canRedo = state.redoStack.isNotEmpty(),
                 onUndo = { onAction(MemeEditorAction.Undo) },
                 onRedo = { onAction(MemeEditorAction.Redo) },
                 onAddTextBox = { onAction(MemeEditorAction.AddTextBox) },
                 onSaveMeme = { onAction(MemeEditorAction.SaveMeme(resId)) },
                 onDismissTextEditor = { onAction(MemeEditorAction.CancelEditing) },
                 onConfirmTextEdit = {
-                    state.currentEditingTextBox?.let { textBox ->
+                    currentTextBox?.let { textBox ->
                         onAction(MemeEditorAction.ConfirmTextChange(textBox.text))
                     }
                 },
                 onFontFamilySelected = { onAction(MemeEditorAction.ToggleFont) },
                 onFontSizeChanged = { onAction(MemeEditorAction.UpdateFontSize(it)) },
                 onColorSelected = { color ->
-                    // Convert back to MemeTextColor
                     val memeColor = when (color) {
                         Color.White -> MemeTextColor.WHITE
                         Color.Red -> MemeTextColor.RED
@@ -160,16 +156,13 @@ fun MemeEditorScreen(
                 }
             )
         }
-
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .consumeWindowInsets(paddingValues)
                 .fillMaxSize()
         ) {
-            var imageLayoutBounds by remember { mutableStateOf(IntRect.Zero) }
-
-            // Background Image Component
+            // Background Image
             Image(
                 painter = painterResource(id = resId),
                 contentDescription = "Meme Background",
@@ -182,7 +175,6 @@ fun MemeEditorScreen(
                         val size = coords.size
                         val actualImageBounds = calculateActualImageBounds(size, imageAspectRatio)
 
-                        imageLayoutBounds = actualImageBounds
                         onAction(
                             MemeEditorAction.UpdateImagePosition(
                                 offset = Offset(
@@ -199,7 +191,7 @@ fun MemeEditorScreen(
                 contentScale = ContentScale.Fit
             )
 
-            // Render all text boxes
+            // Text Boxes
             state.textBoxes.forEach { textBox ->
                 DraggableTextBox(
                     textBox = textBox,
@@ -208,13 +200,20 @@ fun MemeEditorScreen(
                     onPositionChanged = { newPos ->
                         onAction(MemeEditorAction.UpdateTextBoxPosition(textBox.id, newPos))
                     },
-                    onDelete = { onAction(MemeEditorAction.DeleteTextBox(textBox.id)) },
-                    onDoubleClick = { onAction(MemeEditorAction.StartEditingText(textBox)) },
-                    onSelect = { onAction(MemeEditorAction.SelectTextBox(textBox.id)) },
+                    onDelete = {
+                        onAction(MemeEditorAction.DeleteTextBox(textBox.id))
+                    },
+                    onDoubleClick = {
+                        onAction(MemeEditorAction.StartEditingText(textBox))
+                    },
+                    onSelect = {
+                        onAction(MemeEditorAction.SelectTextBox(textBox.id))
+                    },
                     isSelected = state.currentEditingTextBox?.id == textBox.id
                 )
             }
 
+            // Edit Dialog
             if (state.showEditDialog && state.currentEditingTextBox != null) {
                 EditTextDialog(
                     initialText = state.currentEditingTextBox.text,
