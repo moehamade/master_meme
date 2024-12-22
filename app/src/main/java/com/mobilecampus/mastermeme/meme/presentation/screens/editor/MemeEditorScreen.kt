@@ -99,13 +99,13 @@ fun MemeEditorScreen(
             )
         },
         bottomBar = {
-            val currentLayout = if (state.currentEditingTextBox != null) {
+            val currentLayout = if (state.currentlyEditedTextBox != null) {
                 BottomBarLayout.TextEditor
             } else {
                 BottomBarLayout.Default
             }
 
-            val currentTextBox = state.currentEditingTextBox
+            val currentTextBox = state.currentlyEditedTextBox?.currentTextBox
 
             MemeEditorBottomBar(
                 currentLayout = currentLayout,
@@ -185,18 +185,18 @@ fun MemeEditorScreen(
                         onAction(MemeEditorAction.ShowEditTextDialog)
                     },
                     onSelect = {
-                        if (state.currentEditingTextBox == null) {
+                        if (state.currentlyEditedTextBox == null) {
                             onAction(MemeEditorAction.SelectTextBox(textBox))
                         }
                     },
-                    isSelected = state.currentEditingTextBox?.id == textBox.id,
+                    isSelected = state.currentlyEditedTextBox?.currentTextBox?.id == textBox.id,
                 )
             }
 
             // Edit Dialog
-            if (state.showEditDialog && state.currentEditingTextBox != null) {
+            if (state.showEditDialog && state.currentlyEditedTextBox != null) {
                 EditTextDialog(
-                    initialText = state.currentEditingTextBox.text,
+                    initialText = state.currentlyEditedTextBox.currentTextBox.text,
                     onDismiss = { onAction(MemeEditorAction.CancelEditing) },
                     onConfirm = { newText ->
                         onAction(MemeEditorAction.UpdateText(newText))
