@@ -1,32 +1,18 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor
 
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -41,7 +27,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
 import com.mobilecampus.mastermeme.core.presentation.design_system.CenterAlignedAppTopAppBar
@@ -50,12 +35,10 @@ import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
-import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.AppSlider
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.BottomBarLayout
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DraggableTextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.EditTextDialog
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.MemeEditorBottomBar
-import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.TextEditorOption.FontFamily
 import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
@@ -91,7 +74,6 @@ fun MemeEditorScreenRoot(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemeEditorScreen(
     @DrawableRes resId: Int,
@@ -136,12 +118,8 @@ fun MemeEditorScreen(
                 onRedo = { onAction(MemeEditorAction.Redo) },
                 onAddTextBox = { onAction(MemeEditorAction.AddTextBox) },
                 onSaveMeme = { onAction(MemeEditorAction.SaveMeme(resId)) },
-                onDismissTextEditor = { onAction(MemeEditorAction.CancelEditing) },
-                onConfirmTextEdit = {
-                    currentTextBox?.let { textBox ->
-                        onAction(MemeEditorAction.ConfirmTextChange(textBox.text))
-                    }
-                },
+                onCancelTextBoxEditing = { onAction(MemeEditorAction.CancelEditing) },
+                onConfirmTextBoxEditing = { onAction(MemeEditorAction.ConfirmEditing) },
                 onFontSelected = { font -> onAction(MemeEditorAction.UpdateFont(font)) },
                 onFontSizeChanged = { onAction(MemeEditorAction.UpdateFontSize(it)) },
                 onColorSelected = { color ->
@@ -207,9 +185,11 @@ fun MemeEditorScreen(
                         onAction(MemeEditorAction.StartEditingText(textBox))
                     },
                     onSelect = {
-                        onAction(MemeEditorAction.SelectTextBox(textBox.id))
+                        if (state.currentEditingTextBox == null) {
+                            onAction(MemeEditorAction.SelectTextBox(textBox))
+                        }
                     },
-                    isSelected = state.currentEditingTextBox?.id == textBox.id
+                    isSelected = state.currentEditingTextBox?.id == textBox.id,
                 )
             }
 
@@ -219,7 +199,7 @@ fun MemeEditorScreen(
                     initialText = state.currentEditingTextBox.text,
                     onDismiss = { onAction(MemeEditorAction.CancelEditing) },
                     onConfirm = { newText ->
-                        onAction(MemeEditorAction.ConfirmTextChange(newText))
+                        onAction(MemeEditorAction.UpdateText(newText))
                     }
                 )
             }

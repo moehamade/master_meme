@@ -75,23 +75,25 @@ fun DraggableTextBox(
                 textBoxWidth = size.width.toFloat()
                 textBoxHeight = size.height.toFloat()
             }
-            .pointerInput(textBox.id) {
-                detectDragGestures(
-                    onDragStart = {
-                        isDragging = true
-                        onSelect()
-                    },
-                    onDragEnd = { isDragging = false },
-                    onDragCancel = { isDragging = false },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        val maxX = imageSize.width.toFloat() - textBoxWidth
-                        val maxY = imageSize.height.toFloat() - textBoxHeight
-                        offsetX = (offsetX + dragAmount.x).coerceIn(0f, maxX)
-                        offsetY = (offsetY + dragAmount.y).coerceIn(0f, maxY)
-                        onPositionChanged(Offset(offsetX, offsetY))
-                    }
-                )
+            .pointerInput(textBox.id, isSelected) {
+                if (isSelected) {
+                    detectDragGestures(
+                        onDragStart = {
+                            isDragging = true
+                            onSelect()
+                        },
+                        onDragEnd = { isDragging = false },
+                        onDragCancel = { isDragging = false },
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            val maxX = imageSize.width.toFloat() - textBoxWidth
+                            val maxY = imageSize.height.toFloat() - textBoxHeight
+                            offsetX = (offsetX + dragAmount.x).coerceIn(0f, maxX)
+                            offsetY = (offsetY + dragAmount.y).coerceIn(0f, maxY)
+                            onPositionChanged(Offset(offsetX, offsetY))
+                        }
+                    )
+                }
             }
             .combinedClickable(
                 onDoubleClick = onDoubleClick,
@@ -120,22 +122,24 @@ fun DraggableTextBox(
             )
         }
 
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .align(Alignment.TopEnd)
-                .offset(x = 12.dp, y = (-12).dp)
-                .clip(CircleShape)
-                .background(Color(0xFFB3261E))
-                .clickable { onDelete() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(16.dp)
-            )
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = 12.dp, y = (-12).dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFB3261E))
+                    .clickable { onDelete() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }

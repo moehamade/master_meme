@@ -1,6 +1,5 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor
 
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,12 +51,13 @@ sealed class MemeEditorAction {
     data class UpdateFontSize(val newFontSize: Float) : MemeEditorAction()
 
     data class StartEditingText(val textBox: TextBox) : MemeEditorAction()
-    data class ConfirmTextChange(val newText: String) : MemeEditorAction()
+    data class UpdateText(val newText: String) : MemeEditorAction()
+    data object ConfirmEditing: MemeEditorAction()
     data object CancelEditing : MemeEditorAction()
 
     data class UpdateTextBoxPosition(val id: Int, val newPos: Offset) : MemeEditorAction()
     data class DeleteTextBox(val id: Int) : MemeEditorAction()
-    data class SelectTextBox(val id: Int) : MemeEditorAction()
+    data class SelectTextBox(val textBox: TextBox) : MemeEditorAction()
     data class UpdateImagePosition(val offset: Offset, val size: IntSize) : MemeEditorAction()
     data class UpdateFont(val font: MemeFont) : MemeEditorAction()
 
@@ -74,6 +74,8 @@ class MemeEditorViewModel(
 
     private var _state by mutableStateOf(MemeEditorState())
     val state: MemeEditorState get() = _state
+
+    private var textBoxBeforeChanges: TextBox? = null
 
     // Channel for one-time events
     private val eventChannel = Channel<MemeEditorEvent>(Channel.BUFFERED)
@@ -92,11 +94,12 @@ class MemeEditorViewModel(
             is MemeEditorAction.UpdateFontSize -> setFontSize(action.newFontSize)
             is MemeEditorAction.UpdateTextColor -> setTextColor(action.color)
             is MemeEditorAction.StartEditingText -> startEditing(action.textBox)
-            is MemeEditorAction.ConfirmTextChange -> confirmTextChange(action.newText)
-            MemeEditorAction.CancelEditing -> cancelEditing()
+            is MemeEditorAction.UpdateText -> updateText(action.newText)
+            is MemeEditorAction.CancelEditing -> cancelEditing()
+            is MemeEditorAction.ConfirmEditing -> { confirmEditing() }
             is MemeEditorAction.UpdateTextBoxPosition -> updateTextBoxPosition(action.id, action.newPos)
             is MemeEditorAction.DeleteTextBox -> deleteTextBox(action.id)
-            is MemeEditorAction.SelectTextBox -> selectTextBox(action.id)
+            is MemeEditorAction.SelectTextBox -> selectTextBox(action.textBox)
             is MemeEditorAction.UpdateImagePosition -> updateImagePosition(action.offset, action.size)
             is MemeEditorAction.OnArrowBackClick -> navigateBack()
             is MemeEditorAction.UpdateFont -> updateFont(action.font)
@@ -154,7 +157,8 @@ class MemeEditorViewModel(
             // Add to undo stack
             addToUndoStack(EditorAction.AddTextBox(newBox))
 
-            _state = _state.copy(textBoxes = state.textBoxes + newBox)
+            _state = _state.copy(textBoxes = state.textBoxes + newBox, currentEditingTextBox = newBox)
+            textBoxBeforeChanges = newBox
         }
     }
 
@@ -236,7 +240,7 @@ class MemeEditorViewModel(
         _state = _state.copy(currentEditingTextBox = textBox, showEditDialog = true)
     }
 
-    private fun confirmTextChange(newText: String) {
+    private fun updateText(newText: String) {
         val editing = state.currentEditingTextBox ?: return
         val index = state.textBoxes.indexOfFirst { it.id == editing.id }
         if (index != -1) {
@@ -250,7 +254,6 @@ class MemeEditorViewModel(
 
             _state = _state.copy(
                 textBoxes = updated,
-                currentEditingTextBox = null,
                 showEditDialog = false
             )
         }
@@ -368,12 +371,30 @@ class MemeEditorViewModel(
     }
 
     private fun cancelEditing() {
+        state.currentEditingTextBox?.let { selected ->
+            val index = state.textBoxes.indexOfFirst { it.id == selected.id }
+            if (index != -1) {
+                textBoxBeforeChanges?.let { textBoxBeforeChanges ->
+                    val updated = state.textBoxes.toMutableList().apply {
+                        this[index] = textBoxBeforeChanges
+                    }
+                    _state = _state.copy(textBoxes = updated)
+                }
+            }
+        }
+
         _state = _state.copy(currentEditingTextBox = null, showEditDialog = false)
+        textBoxBeforeChanges = null
     }
 
-    private fun selectTextBox(id: Int) {
-        val selected = state.textBoxes.find { it.id == id }
-        _state = _state.copy(currentEditingTextBox = selected)
+    private fun confirmEditing() {
+        _state = _state.copy(currentEditingTextBox = null, showEditDialog = false)
+        textBoxBeforeChanges = null
+    }
+
+    private fun selectTextBox(textBox: TextBox) {
+        _state = _state.copy(currentEditingTextBox = textBox)
+        textBoxBeforeChanges = textBox
     }
 
     private fun updateImagePosition(offset: Offset, size: IntSize) {
