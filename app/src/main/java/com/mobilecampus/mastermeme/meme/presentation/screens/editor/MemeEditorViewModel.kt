@@ -105,22 +105,18 @@ class MemeEditorViewModel(
     }
 
     private fun updateFont(newFont: MemeFont) {
-        val selected = state.currentEditingTextBox ?: return
-        val index = state.textBoxes.indexOfFirst { it.id == selected.id }
-        if (index != -1) {
-            val oldTextBox = state.textBoxes[index]
-            val newTextBox = oldTextBox.copy(
-                style = oldTextBox.style.copy(font = newFont)
-            )
+        state.currentEditingTextBox?.let { selected ->
+            state.textBoxes.find { it.id == selected.id }?.let { textBox ->
+                val newTextBox = textBox.copy(
+                    style = textBox.style.copy(font = newFont)
+                )
 
-            val updated = state.textBoxes.toMutableList().apply {
-                this[index] = newTextBox
+                _state = _state.copy(
+                    textBoxes = state.textBoxes.map {
+                        if (it.id == selected.id) newTextBox else it
+                    }
+                )
             }
-
-            _state = _state.copy(
-                textBoxes = updated,
-                currentEditingTextBox = newTextBox
-            )
         }
     }
 
@@ -158,69 +154,56 @@ class MemeEditorViewModel(
     }
 
     private fun toggleFont() {
-        val selected = state.currentEditingTextBox ?: return
-        val index = state.textBoxes.indexOfFirst { it.id == selected.id }
-        if (index != -1) {
-            val oldTextBox = state.textBoxes[index]
-            val currentStyle = oldTextBox.style
-            val newFont = if (currentStyle.font == MemeFont.IMPACT) {
-                MemeFont.SYSTEM
-            } else {
-                MemeFont.IMPACT
+        state.currentEditingTextBox?.let { selected ->
+            state.textBoxes.find { it.id == selected.id }?.let { textBox ->
+                val newFont = if (textBox.style.font == MemeFont.IMPACT) {
+                    MemeFont.SYSTEM
+                } else {
+                    MemeFont.IMPACT
+                }
+
+                val newTextBox = textBox.copy(
+                    style = textBox.style.copy(font = newFont)
+                )
+
+                _state = _state.copy(
+                    textBoxes = state.textBoxes.map {
+                        if (it.id == selected.id) newTextBox else it
+                    }
+                )
             }
-
-            val newTextBox = oldTextBox.copy(
-                style = currentStyle.copy(font = newFont)
-            )
-
-            val updated = state.textBoxes.toMutableList().apply {
-                this[index] = newTextBox
-            }
-
-            _state = _state.copy(
-                textBoxes = updated,
-                currentEditingTextBox = newTextBox
-            )
         }
     }
 
     private fun setFontSize(newSize: Float) {
-        val selected = state.currentEditingTextBox ?: return
-        val index = state.textBoxes.indexOfFirst { it.id == selected.id }
-        if (index != -1) {
-            val oldTextBox = state.textBoxes[index]
-            val newTextBox = oldTextBox.copy(
-                style = oldTextBox.style.copy(fontSize = newSize)
-            )
+        state.currentEditingTextBox?.let { selected ->
+            state.textBoxes.find { it.id == selected.id }?.let { textBox ->
+                val newTextBox = textBox.copy(
+                    style = textBox.style.copy(fontSize = newSize)
+                )
 
-            val updated = state.textBoxes.toMutableList().apply {
-                this[index] = newTextBox
+                _state = _state.copy(
+                    textBoxes = state.textBoxes.map {
+                        if (it.id == selected.id) newTextBox else it
+                    }
+                )
             }
-
-            _state = _state.copy(
-                textBoxes = updated,
-                currentEditingTextBox = newTextBox
-            )
         }
     }
 
     private fun setTextColor(color: MemeTextColor) {
-        val selected = state.currentEditingTextBox ?: return
-        val index = state.textBoxes.indexOfFirst { it.id == selected.id }
-        if (index != -1) {
-            val oldTextBox = state.textBoxes[index]
-            val newTextBox = oldTextBox.copy(
-                style = oldTextBox.style.copy(color = color)
-            )
+        state.currentEditingTextBox?.let { selected ->
+            state.textBoxes.find { it.id == selected.id }?.let { textBox ->
+                val newTextBox = textBox.copy(
+                    style = textBox.style.copy(color = color)
+                )
 
-            val updated = state.textBoxes.toMutableList().apply {
-                this[index] = newTextBox
+                _state = _state.copy(
+                    textBoxes = state.textBoxes.map {
+                        if (it.id == selected.id) newTextBox else it
+                    }
+                )
             }
-
-            _state = _state.copy(
-                textBoxes = updated,
-                currentEditingTextBox = newTextBox
-            )
         }
     }
 
@@ -229,19 +212,17 @@ class MemeEditorViewModel(
     }
 
     private fun updateText(newText: String) {
-        val editing = state.currentEditingTextBox ?: return
-        val index = state.textBoxes.indexOfFirst { it.id == editing.id }
-        if (index != -1) {
-            val oldTextBox = state.textBoxes[index]
-            val newTextBox = oldTextBox.copy(text = newText)
-            val updated = state.textBoxes.toMutableList().apply {
-                this[index] = newTextBox
-            }
+        state.currentEditingTextBox?.let { selected ->
+            state.textBoxes.find { it.id == selected.id }?.let { textBox ->
+                val newTextBox = textBox.copy(text = newText)
 
-            _state = _state.copy(
-                textBoxes = updated,
-                showEditDialog = false
-            )
+                _state = _state.copy(
+                    textBoxes = state.textBoxes.map {
+                        if (it.id == selected.id) newTextBox else it
+                    },
+                    showEditDialog = false
+                )
+            }
         }
     }
 
@@ -259,18 +240,17 @@ class MemeEditorViewModel(
     }
 
     private fun updateTextBoxPosition(id: Int, newPos: Offset) {
-        val index = state.textBoxes.indexOfFirst { it.id == id }
-        if (index != -1) {
-            val oldTextBox = state.textBoxes[index]
-            val newTextBox = oldTextBox.copy(position = newPos)
-            val updated = state.textBoxes.toMutableList().apply {
-                this[index] = newTextBox
-            }
+        state.textBoxes.find { it.id == id }?.let { textBox ->
+            val newTextBox = textBox.copy(position = newPos)
 
             _state = _state.copy(
-                textBoxes = updated,
-                currentEditingTextBox = if (state.currentEditingTextBox?.id == id) newTextBox
-                else state.currentEditingTextBox
+                textBoxes = state.textBoxes.map {
+                    if (it.id == id) newTextBox else it
+                },
+                currentEditingTextBox = if (state.currentEditingTextBox?.id == id)
+                    newTextBox
+                else
+                    state.currentEditingTextBox
             )
         }
     }

@@ -11,14 +11,11 @@ import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ShareMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -56,15 +53,15 @@ sealed interface MemeListAction {
     data class ToggleFavorite(val meme: MemeItem.ImageMeme) : MemeListAction
     data class DeleteSelectedMemes(val ids: Set<Int>) : MemeListAction
     data class ToggleMemeSelection(val memeId: Int) : MemeListAction
-    object DisableSelectionMode : MemeListAction
-    object ClearSelection : MemeListAction
+    data object DisableSelectionMode : MemeListAction
+    data object ClearSelection : MemeListAction
     data class SetBottomSheetVisibility(val visible: Boolean) : MemeListAction
     data class SetSearchActive(val active: Boolean) : MemeListAction
     data class UpdateSearchQuery(val query: String) : MemeListAction
     data class UpdateSortOption(val option: SortOption) : MemeListAction
     data class SetDeleteDialogVisible(val visible: Boolean) : MemeListAction
     data object DismissDeleteDialog : MemeListAction
-    object ShareSelectedMemes : MemeListAction
+    data object ShareSelectedMemes : MemeListAction
 }
 
 sealed interface MemeListScreenEvent {
@@ -72,7 +69,6 @@ sealed interface MemeListScreenEvent {
     data class ShowError(val message: String) : MemeListScreenEvent
 }
 
-@OptIn(FlowPreview::class)
 class MemeListViewModel(
     private val getMemesUseCase: GetMemesUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
