@@ -182,7 +182,7 @@ fun MemeEditorScreen(
                         onAction(MemeEditorAction.DeleteTextBox(textBox.id))
                     },
                     onDoubleClick = {
-                        onAction(MemeEditorAction.StartEditingText(textBox))
+                        onAction(MemeEditorAction.ShowEditTextDialog)
                     },
                     onSelect = {
                         if (state.currentEditingTextBox == null) {

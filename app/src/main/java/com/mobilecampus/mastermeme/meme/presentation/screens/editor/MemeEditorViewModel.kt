@@ -22,6 +22,7 @@ data class MemeEditorState(
     val textBoxes: List<TextBox> = emptyList(),
     val currentEditingTextBox: TextBox? = null,
     val currentEditingTextBoxBeforeChanges: TextBox? = null,
+    val isNew: Boolean? = null,
     val showEditDialog: Boolean = false,
     val imageOffset: Offset = Offset.Zero,
     val imageSize: IntSize = IntSize.Zero,
@@ -49,7 +50,7 @@ sealed class MemeEditorAction {
     data class UpdateTextColor(val color: MemeTextColor) : MemeEditorAction()
     data class UpdateFontSize(val newFontSize: Float) : MemeEditorAction()
 
-    data class StartEditingText(val textBox: TextBox) : MemeEditorAction()
+    data object ShowEditTextDialog : MemeEditorAction()
     data class UpdateText(val newText: String) : MemeEditorAction()
     data object ConfirmEditing: MemeEditorAction()
     data object CancelEditing : MemeEditorAction()
@@ -79,7 +80,7 @@ class MemeEditorViewModel(
     val events = eventChannel.receiveAsFlow()
 
     private var nextId = 0
-    private val maxUndoSteps = 5
+    private val maxUndoSteps = 15
 
     fun onAction(action: MemeEditorAction) {
         when (action) {
@@ -90,7 +91,7 @@ class MemeEditorViewModel(
             is MemeEditorAction.ToggleFont -> toggleFont()
             is MemeEditorAction.UpdateFontSize -> setFontSize(action.newFontSize)
             is MemeEditorAction.UpdateTextColor -> setTextColor(action.color)
-            is MemeEditorAction.StartEditingText -> startEditing(action.textBox)
+            is MemeEditorAction.ShowEditTextDialog -> showEditTextDialog()
             is MemeEditorAction.UpdateText -> updateText(action.newText)
             is MemeEditorAction.CancelEditing -> cancelEditing()
             is MemeEditorAction.ConfirmEditing -> { confirmEditing() }
@@ -148,7 +149,8 @@ class MemeEditorViewModel(
             _state = _state.copy(
                 textBoxes = state.textBoxes + newBox,
                 currentEditingTextBox = newBox,
-                currentEditingTextBoxBeforeChanges = newBox
+                currentEditingTextBoxBeforeChanges = newBox,
+                isNew = true
             )
         }
     }
@@ -207,8 +209,8 @@ class MemeEditorViewModel(
         }
     }
 
-    private fun startEditing(textBox: TextBox) {
-        _state = _state.copy(currentEditingTextBox = textBox, showEditDialog = true)
+    private fun showEditTextDialog() {
+        _state = _state.copy(showEditDialog = true)
     }
 
     private fun updateText(newText: String) {
@@ -356,7 +358,13 @@ class MemeEditorViewModel(
             val index = state.textBoxes.indexOfFirst { it.id == selected.id }
             if (index != -1) {
                 state.currentEditingTextBoxBeforeChanges?.let { textBoxBeforeChanges ->
-                    addToUndoStack(UndoRedoAction.UpdateTextBoxInUndoStack(textBoxBeforeChanges, selected))
+                    state.isNew?.let { isNew ->
+                        if (isNew) {
+                            addToUndoStack(UndoRedoAction.AddTextBoxToUndoStack(selected))
+                        } else {
+                            addToUndoStack(UndoRedoAction.UpdateTextBoxInUndoStack(textBoxBeforeChanges, selected))
+                        }
+                    }
                 }
             }
         }
@@ -366,7 +374,7 @@ class MemeEditorViewModel(
     }
 
     private fun selectTextBox(textBox: TextBox) {
-        _state = _state.copy(currentEditingTextBox = textBox, currentEditingTextBoxBeforeChanges = textBox)
+        _state = _state.copy(currentEditingTextBox = textBox, currentEditingTextBoxBeforeChanges = textBox, isNew = false)
     }
 
     private fun updateImagePosition(offset: Offset, size: IntSize) {

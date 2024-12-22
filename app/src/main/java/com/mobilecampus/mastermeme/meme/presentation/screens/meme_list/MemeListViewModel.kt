@@ -43,8 +43,8 @@ data class MemeListScreenState(
 }
 
 sealed class LoadingState {
-    object Loading : LoadingState()
-    object Success : LoadingState()
+    data object Loading : LoadingState()
+    data object Success : LoadingState()
     data class Error(val message: String) : LoadingState()
 }
 
