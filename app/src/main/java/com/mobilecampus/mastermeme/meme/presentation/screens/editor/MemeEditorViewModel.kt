@@ -21,20 +21,19 @@ import kotlinx.coroutines.launch
 data class MemeEditorState(
     val textBoxes: List<TextBox> = emptyList(),
     val currentEditingTextBox: TextBox? = null,
+    val currentEditingTextBoxBeforeChanges: TextBox? = null,
     val showEditDialog: Boolean = false,
     val imageOffset: Offset = Offset.Zero,
     val imageSize: IntSize = IntSize.Zero,
-    val undoStack: List<EditorAction> = emptyList(),
-    val redoStack: List<EditorAction> = emptyList()
+    val undoStack: List<UndoRedoAction> = emptyList(),
+    val redoStack: List<UndoRedoAction> = emptyList()
 )
 
-sealed class EditorAction {
-    data class AddTextBox(val textBox: TextBox) : EditorAction()
-    data class DeleteTextBox(val textBox: TextBox) : EditorAction()
-    data class UpdateTextBox(val oldTextBox: TextBox, val newTextBox: TextBox) : EditorAction()
+sealed class UndoRedoAction {
+    data class AddTextBoxToUndoStack(val textBox: TextBox) : UndoRedoAction()
+    data class DeleteTextBoxFromUndoStack(val textBox: TextBox) : UndoRedoAction()
+    data class UpdateTextBoxInUndoStack(val oldTextBox: TextBox, val newTextBox: TextBox) : UndoRedoAction()
 }
-
-
 
 sealed class MemeEditorAction {
 
@@ -74,8 +73,6 @@ class MemeEditorViewModel(
 
     private var _state by mutableStateOf(MemeEditorState())
     val state: MemeEditorState get() = _state
-
-    private var textBoxBeforeChanges: TextBox? = null
 
     // Channel for one-time events
     private val eventChannel = Channel<MemeEditorEvent>(Channel.BUFFERED)
@@ -120,8 +117,6 @@ class MemeEditorViewModel(
                 this[index] = newTextBox
             }
 
-            addToUndoStack(EditorAction.UpdateTextBox(oldTextBox, newTextBox))
-
             _state = _state.copy(
                 textBoxes = updated,
                 currentEditingTextBox = newTextBox
@@ -154,11 +149,11 @@ class MemeEditorViewModel(
                 style = MemeTextStyle(font = MemeFont.IMPACT, fontSize = 36f)
             )
 
-            // Add to undo stack
-            addToUndoStack(EditorAction.AddTextBox(newBox))
-
-            _state = _state.copy(textBoxes = state.textBoxes + newBox, currentEditingTextBox = newBox)
-            textBoxBeforeChanges = newBox
+            _state = _state.copy(
+                textBoxes = state.textBoxes + newBox,
+                currentEditingTextBox = newBox,
+                currentEditingTextBoxBeforeChanges = newBox
+            )
         }
     }
 
@@ -182,9 +177,6 @@ class MemeEditorViewModel(
                 this[index] = newTextBox
             }
 
-            // Add to undo stack
-            addToUndoStack(EditorAction.UpdateTextBox(oldTextBox, newTextBox))
-
             _state = _state.copy(
                 textBoxes = updated,
                 currentEditingTextBox = newTextBox
@@ -205,8 +197,6 @@ class MemeEditorViewModel(
                 this[index] = newTextBox
             }
 
-            addToUndoStack(EditorAction.UpdateTextBox(oldTextBox, newTextBox))
-
             _state = _state.copy(
                 textBoxes = updated,
                 currentEditingTextBox = newTextBox
@@ -226,8 +216,6 @@ class MemeEditorViewModel(
             val updated = state.textBoxes.toMutableList().apply {
                 this[index] = newTextBox
             }
-
-            addToUndoStack(EditorAction.UpdateTextBox(oldTextBox, newTextBox))
 
             _state = _state.copy(
                 textBoxes = updated,
@@ -250,8 +238,6 @@ class MemeEditorViewModel(
                 this[index] = newTextBox
             }
 
-            addToUndoStack(EditorAction.UpdateTextBox(oldTextBox, newTextBox))
-
             _state = _state.copy(
                 textBoxes = updated,
                 showEditDialog = false
@@ -264,7 +250,7 @@ class MemeEditorViewModel(
         val updated = state.textBoxes.filter { it.id != id }
         val wasEditing = state.currentEditingTextBox?.id == id
 
-        addToUndoStack(EditorAction.DeleteTextBox(textBox))
+        addToUndoStack(UndoRedoAction.DeleteTextBoxFromUndoStack(textBox))
 
         _state = _state.copy(
             textBoxes = updated,
@@ -281,8 +267,6 @@ class MemeEditorViewModel(
                 this[index] = newTextBox
             }
 
-            addToUndoStack(EditorAction.UpdateTextBox(oldTextBox, newTextBox))
-
             _state = _state.copy(
                 textBoxes = updated,
                 currentEditingTextBox = if (state.currentEditingTextBox?.id == id) newTextBox
@@ -291,7 +275,7 @@ class MemeEditorViewModel(
         }
     }
 
-    private fun addToUndoStack(action: EditorAction) {
+    private fun addToUndoStack(action: UndoRedoAction) {
         _state = _state.copy(
             undoStack = (_state.undoStack + action).takeLast(maxUndoSteps),
             redoStack = emptyList() // Clear redo stack when new action is performed
@@ -302,7 +286,7 @@ class MemeEditorViewModel(
         val lastAction = state.undoStack.lastOrNull() ?: return
 
         val newState = when (lastAction) {
-            is EditorAction.AddTextBox -> {
+            is UndoRedoAction.AddTextBoxToUndoStack -> {
                 _state.copy(
                     textBoxes = _state.textBoxes.filter { it.id != lastAction.textBox.id },
                     undoStack = _state.undoStack.dropLast(1),
@@ -311,14 +295,14 @@ class MemeEditorViewModel(
                         null else _state.currentEditingTextBox
                 )
             }
-            is EditorAction.DeleteTextBox -> {
+            is UndoRedoAction.DeleteTextBoxFromUndoStack -> {
                 _state.copy(
                     textBoxes = _state.textBoxes + lastAction.textBox,
                     undoStack = _state.undoStack.dropLast(1),
                     redoStack = _state.redoStack + lastAction
                 )
             }
-            is EditorAction.UpdateTextBox -> {
+            is UndoRedoAction.UpdateTextBoxInUndoStack -> {
                 val updatedBoxes = _state.textBoxes.map {
                     if (it.id == lastAction.newTextBox.id) lastAction.oldTextBox else it
                 }
@@ -338,14 +322,14 @@ class MemeEditorViewModel(
         val lastAction = state.redoStack.lastOrNull() ?: return
 
         val newState = when (lastAction) {
-            is EditorAction.AddTextBox -> {
+            is UndoRedoAction.AddTextBoxToUndoStack -> {
                 _state.copy(
                     textBoxes = _state.textBoxes + lastAction.textBox,
                     redoStack = _state.redoStack.dropLast(1),
                     undoStack = _state.undoStack + lastAction
                 )
             }
-            is EditorAction.DeleteTextBox -> {
+            is UndoRedoAction.DeleteTextBoxFromUndoStack -> {
                 _state.copy(
                     textBoxes = _state.textBoxes.filter { it.id != lastAction.textBox.id },
                     redoStack = _state.redoStack.dropLast(1),
@@ -354,7 +338,7 @@ class MemeEditorViewModel(
                         null else _state.currentEditingTextBox
                 )
             }
-            is EditorAction.UpdateTextBox -> {
+            is UndoRedoAction.UpdateTextBoxInUndoStack -> {
                 val updatedBoxes = _state.textBoxes.map {
                     if (it.id == lastAction.oldTextBox.id) lastAction.newTextBox else it
                 }
@@ -374,7 +358,7 @@ class MemeEditorViewModel(
         state.currentEditingTextBox?.let { selected ->
             val index = state.textBoxes.indexOfFirst { it.id == selected.id }
             if (index != -1) {
-                textBoxBeforeChanges?.let { textBoxBeforeChanges ->
+                state.currentEditingTextBoxBeforeChanges?.let { textBoxBeforeChanges ->
                     val updated = state.textBoxes.toMutableList().apply {
                         this[index] = textBoxBeforeChanges
                     }
@@ -383,18 +367,26 @@ class MemeEditorViewModel(
             }
         }
 
-        _state = _state.copy(currentEditingTextBox = null, showEditDialog = false)
-        textBoxBeforeChanges = null
+        _state = _state.copy(currentEditingTextBox = null, currentEditingTextBoxBeforeChanges = null, showEditDialog = false)
     }
 
     private fun confirmEditing() {
-        _state = _state.copy(currentEditingTextBox = null, showEditDialog = false)
-        textBoxBeforeChanges = null
+        // update undo/redo
+        state.currentEditingTextBox?.let { selected ->
+            val index = state.textBoxes.indexOfFirst { it.id == selected.id }
+            if (index != -1) {
+                state.currentEditingTextBoxBeforeChanges?.let { textBoxBeforeChanges ->
+                    addToUndoStack(UndoRedoAction.UpdateTextBoxInUndoStack(textBoxBeforeChanges, selected))
+                }
+            }
+        }
+
+        // clear current selection
+        _state = _state.copy(currentEditingTextBox = null, currentEditingTextBoxBeforeChanges = null, showEditDialog = false)
     }
 
     private fun selectTextBox(textBox: TextBox) {
-        _state = _state.copy(currentEditingTextBox = textBox)
-        textBoxBeforeChanges = textBox
+        _state = _state.copy(currentEditingTextBox = textBox, currentEditingTextBoxBeforeChanges = textBox)
     }
 
     private fun updateImagePosition(offset: Offset, size: IntSize) {
