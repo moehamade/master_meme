@@ -321,7 +321,17 @@ private fun FontFamilySelector(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.clickable { onSelected(fontFamily) }
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        if (selectedFontFamily == fontFamily) {
+                            Color(0xFF2B2930)
+                        } else {
+                            Color.Transparent
+                        }
+                    )
+                    .clickable { onSelected(fontFamily) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = "Good",
