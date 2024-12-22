@@ -69,22 +69,15 @@ fun MemeEditorScreenRoot(
     val context = LocalContext.current
     val state = viewModel.state
 
-    // Observe saveCompleted events
     ObserveAsEvents(flow = viewModel.events) { event ->
         when (event) {
             MemeEditorEvent.OnNavigateBack -> onNavigateBack()
             is MemeEditorEvent.OnSaveResult -> {
                 val success = event.success
                 val path = event.filePath
-
                 path?.let {
-                    // if path is defined... vordead my friend this is the saved image
-                    // do something here, or better do something back in the viewmodel
-                    // so that you associate the local image path with room :)
-                    // kaboom
                     onNavigateBack()
                 }
-
                 val message = if (success) "Meme saved successfully!" else "Failed to save meme!"
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }
@@ -221,56 +214,6 @@ fun MemeEditorScreen(
                     isSelected = state.currentEditingTextBox?.id == textBox.id
                 )
             }
-
-            // Bottom control panel
-//            Column(
-//                modifier = Modifier
-//                    .align(Alignment.BottomCenter)
-//                    .padding(16.dp),
-//                verticalArrangement = Arrangement.spacedBy(8.dp)
-//            ) {
-//                var lastIdSelected by remember {
-//                    mutableIntStateOf(
-//                        state.currentEditingTextBox?.id ?: -1
-//                    )
-//                }
-//
-//                state.currentEditingTextBox?.let {
-//                    var fontSize by remember { mutableFloatStateOf(it.style.fontSize) }
-//
-//                    if (lastIdSelected != it.id) {
-//                        lastIdSelected = it.id
-//                        fontSize = it.style.fontSize
-//                    }
-//
-//                    AppSlider(
-//                        value = fontSize,
-//                        onValueChange = { newFontSize ->
-//                            fontSize = newFontSize
-//                            onAction(MemeEditorAction.UpdateFontSize(newFontSize))
-//                        },
-//                        valueRange = 24f..48f
-//                    )
-//
-//                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-//                        Button(onClick = { onAction(MemeEditorAction.ToggleFont) }) {
-//                            Text(if (it.style.font == MemeFont.IMPACT) "Impact" else "System")
-//                        }
-//                        Button(onClick = {
-//                            onAction(MemeEditorAction.UpdateTextColor(MemeTextColor.WHITE))
-//                        }) {
-//                            Text("White")
-//                        }
-//                        Button(onClick = {
-//                            onAction(MemeEditorAction.UpdateTextColor(MemeTextColor.RED))
-//                        }) {
-//                            Text("Red")
-//                        }
-//                    }
-//                }
-//
-//
-//            }
 
             if (state.showEditDialog && state.currentEditingTextBox != null) {
                 EditTextDialog(
