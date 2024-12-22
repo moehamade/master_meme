@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.MasterMemeBackground
+import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.ui.theme.ExtendedTheme
 
@@ -78,7 +79,7 @@ sealed class TextEditorOption {
 fun MemeEditorBottomBar(
     currentLayout: BottomBarLayout,
     selectedColor: Color,
-    selectedFontFamily: FontFamily = FontFamily.Default,
+    selectedFont: MemeFont = MemeFont.IMPACT,  // Change this parameter
     selectedFontSize: Float = 16f,
     canUndo: Boolean,
     canRedo: Boolean,
@@ -89,7 +90,7 @@ fun MemeEditorBottomBar(
     onSaveMeme: () -> Unit = {},
     onDismissTextEditor: () -> Unit = {},
     onConfirmTextEdit: () -> Unit = {},
-    onFontFamilySelected: () -> Unit = {}, // Simplified to just toggle
+    onFontSelected: (MemeFont) -> Unit = {},  // Update this callback
     onFontSizeChanged: (Float) -> Unit = {},
     onColorSelected: (Color) -> Unit = {}
 ) {
@@ -112,8 +113,8 @@ fun MemeEditorBottomBar(
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     when (selectedOption) {
                         TextEditorOption.FontFamily -> FontFamilySelector(
-                            selectedFontFamily = selectedFontFamily,
-                            onSelected = { onFontFamilySelected() } // Just toggle font
+                            selectedFont = selectedFont,
+                            onSelected =  onFontSelected
                         )
 
                         TextEditorOption.FontSize -> FontSizeSelector(
@@ -332,14 +333,12 @@ private fun EditorOptionButton(
 
 @Composable
 private fun FontFamilySelector(
-    selectedFontFamily: FontFamily = FontFamily.Default,
-    onSelected: (FontFamily) -> Unit
+    selectedFont: MemeFont,  // Change to use MemeFont instead of FontFamily
+    onSelected: (MemeFont) -> Unit
 ) {
-    val fontFamilies = listOf(
-        FontFamily.Default to "Default",
-        FontFamily.Serif to "Serif",
-        FontFamily.SansSerif to "Sans Serif",
-        FontFamily.Monospace to "Monospace"
+    val fontOptions = listOf(
+        MemeFont.IMPACT to "Impact",
+        MemeFont.SYSTEM to "System"
     )
 
     LazyRow(
@@ -347,26 +346,31 @@ private fun FontFamilySelector(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        items(fontFamilies) { (fontFamily, name) ->
+        items(fontOptions) { (font, name) ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .background(
-                        if (selectedFontFamily == fontFamily) {
+                        if (selectedFont == font) {
                             Color(0xFF2B2930)
                         } else {
                             Color.Transparent
                         }
                     )
-                    .clickable { onSelected(fontFamily) }
+                    .clickable { onSelected(font) }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = "Good",
-                    fontFamily = fontFamily,
-                    style = MaterialTheme.typography.headlineLarge.copy(fontSize = 28.sp)
+                    style = when (font) {
+                        MemeFont.IMPACT -> MaterialTheme.typography.headlineLarge
+                        MemeFont.SYSTEM -> MaterialTheme.typography.headlineLarge.copy(
+                            fontFamily = FontFamily.SansSerif
+                        )
+                    },
+                    fontSize = 28.sp
                 )
                 Text(
                     text = name,
@@ -496,11 +500,7 @@ fun MemeEditorBottomBarPreview() {
     }
 }
 
-@Preview
-@Composable
-fun FontFamilySelectorPreview() {
-    FontFamilySelector(onSelected = {})
-}
+
 
 @Preview
 @Composable

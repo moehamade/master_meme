@@ -128,7 +128,7 @@ fun MemeEditorScreen(
             MemeEditorBottomBar(
                 currentLayout = currentLayout,
                 selectedColor = currentTextBox?.style?.color?.toFillColor() ?: Color.White,
-                selectedFontFamily = androidx.compose.ui.text.font.FontFamily.Default, // This doesn't matter as we're just toggling
+                selectedFont = currentTextBox?.style?.font ?: MemeFont.IMPACT,
                 selectedFontSize = currentTextBox?.style?.fontSize ?: 36f,
                 canUndo = state.undoStack.isNotEmpty(),
                 canRedo = state.redoStack.isNotEmpty(),
@@ -142,7 +142,7 @@ fun MemeEditorScreen(
                         onAction(MemeEditorAction.ConfirmTextChange(textBox.text))
                     }
                 },
-                onFontFamilySelected = { onAction(MemeEditorAction.ToggleFont) },
+                onFontSelected = { font -> onAction(MemeEditorAction.UpdateFont(font)) },
                 onFontSizeChanged = { onAction(MemeEditorAction.UpdateFontSize(it)) },
                 onColorSelected = { color ->
                     val memeColor = when (color) {
