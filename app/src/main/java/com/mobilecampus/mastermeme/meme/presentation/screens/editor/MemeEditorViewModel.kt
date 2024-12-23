@@ -84,7 +84,7 @@ class MemeEditorViewModel(
     val events = eventChannel.receiveAsFlow()
 
     private var nextId = 0
-    private val maxUndoSteps = 15
+    private val maxUndoSteps = 5
 
     fun onAction(action: MemeEditorAction) {
         when (action) {
