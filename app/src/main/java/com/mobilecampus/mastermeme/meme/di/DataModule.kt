@@ -6,6 +6,8 @@ import com.mobilecampus.mastermeme.meme.data.local.datasource.MemeLocalDataSourc
 import com.mobilecampus.mastermeme.meme.data.local.util.FileManagerImpl
 import com.mobilecampus.mastermeme.meme.domain.data_source.MemeDataSource
 import com.mobilecampus.mastermeme.meme.domain.util.FileManager
+import eu.anifantakis.lib.securepersist.PersistManager
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val dataModule = module {
@@ -13,4 +15,7 @@ val dataModule = module {
     single { get<MemeDatabase>().memeDao() }
     single<MemeDataSource> { MemeLocalDataSourceImpl(get(), get()) }
     single<FileManager> { FileManagerImpl(get()) }
+    single<PersistManager> {
+        PersistManager(androidContext())
+    }
 }

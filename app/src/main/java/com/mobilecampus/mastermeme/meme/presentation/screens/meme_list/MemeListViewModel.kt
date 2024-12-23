@@ -10,6 +10,7 @@ import com.mobilecampus.mastermeme.meme.domain.use_case.GetMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ShareMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
+import eu.anifantakis.lib.securepersist.PersistManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -27,7 +28,7 @@ data class MemeListScreenState(
     val memes: List<MemeItem.ImageMeme> = emptyList(),
     val templates: List<MemeItem.Template> = emptyList(),
     val loadingState: LoadingState = LoadingState.Loading,
-    val sortOption: SortOption = SortOption.FAVORITES_FIRST,
+    val sortOption: SortOption,
     val isSelectionModeActive: Boolean = false,
     val selectedMemesIds: Set<Int> = emptySet(),
     val isBottomSheetVisible: Boolean = false,
@@ -75,10 +76,12 @@ class MemeListViewModel(
     private val deleteMemesUseCase: DeleteMemeUseCase,
     private val getTemplatesUseCase: GetTemplatesUseCase,
     private val shareMemesUseCase: ShareMemesUseCase,
+    persistManager: PersistManager
 ) : ViewModel() {
-    private val sortOptionFlow = MutableStateFlow(SortOption.FAVORITES_FIRST)
+    private var sortOptionPersist by persistManager.dataStorePrefs.preference(defaultValue = SortOption.FAVORITES_FIRST)
+    private val sortOptionFlow = MutableStateFlow(sortOptionPersist)
 
-    private val _state = MutableStateFlow(MemeListScreenState())
+    private val _state = MutableStateFlow(MemeListScreenState(sortOption = sortOptionPersist))
     val state = _state
         .onStart {
             loadMemes()
@@ -87,11 +90,12 @@ class MemeListViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = MemeListScreenState()
+            initialValue = MemeListScreenState(sortOption = sortOptionPersist)
         )
 
     private val eventChannel = Channel<MemeListScreenEvent>(Channel.BUFFERED)
     val events = eventChannel.receiveAsFlow()
+
 
     private fun loadMemes() {
         viewModelScope.launch {
@@ -242,6 +246,7 @@ class MemeListViewModel(
         viewModelScope.launch {
             sortOptionFlow.emit(option)
             _state.update { it.copy(sortOption = option) }
+            sortOptionPersist = option
         }
     }
 

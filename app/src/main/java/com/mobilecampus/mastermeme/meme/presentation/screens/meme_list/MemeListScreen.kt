@@ -79,7 +79,6 @@ import com.mobilecampus.mastermeme.ui.theme.Black
 import com.mobilecampus.mastermeme.ui.theme.White
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemeListScreenRoot(
     onOpenEditorScreen: (id: Int) -> Unit,
