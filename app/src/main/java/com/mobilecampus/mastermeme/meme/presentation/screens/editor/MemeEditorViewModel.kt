@@ -223,12 +223,14 @@ class MemeEditorViewModel(
         }
     }
 
-    private fun deleteTextBox(id: Int) {
+    private fun deleteTextBox(id: Int, useUndo: Boolean = true) {
         val textBox = state.textBoxes.find { it.id == id } ?: return
         val updated = state.textBoxes.filter { it.id != id }
         val wasEditing = state.currentlyEditedTextBox?.currentTextBox?.id == id
 
-        addToUndoStack(UndoRedoAction.DeleteTextBoxFromUndoStack(textBox))
+        if (useUndo) {
+            addToUndoStack(UndoRedoAction.DeleteTextBoxFromUndoStack(textBox))
+        }
 
         _state = _state.copy(
             textBoxes = updated,
@@ -348,7 +350,14 @@ class MemeEditorViewModel(
                     val updated = state.textBoxes.toMutableList().apply {
                         this[index] = textBoxBeforeChanges
                     }
-                    _state = _state.copy(textBoxes = updated)
+
+                    if (edited.isNew) {
+                        deleteTextBox(edited.currentTextBox.id, useUndo = false)
+                        return
+                    }
+                    else {
+                        _state = _state.copy(textBoxes = updated)
+                    }
                 }
             }
         }
