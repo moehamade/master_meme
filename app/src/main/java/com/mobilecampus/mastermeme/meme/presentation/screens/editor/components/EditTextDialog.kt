@@ -23,11 +23,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 
 @Composable
@@ -61,7 +63,7 @@ fun EditTextDialog(
                             textFieldValue.value = newValue
                             text = newValue.text
                         },
-                        label = { Text("Enter text") },
+                        label = { Text(stringResource(R.string.dialog_label_text)) },
                         modifier = Modifier.focusRequester(focusRequester)
                     )
 
@@ -78,10 +80,10 @@ fun EditTextDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextButton(onClick = onDismiss) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.dialog_cancel_button))
                         }
                         TextButton(onClick = { onConfirm(text) }) {
-                            Text("OK")
+                            Text(stringResource(R.string.dialog_ok_button))
                         }
                     }
                 }

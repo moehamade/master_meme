@@ -55,7 +55,7 @@ sealed class MemeEditorAction {
     data class UpdateFontSize(val newFontSize: Float) : MemeEditorAction()
 
     data object ShowEditTextDialog : MemeEditorAction()
-    data class UpdateText(val newText: String) : MemeEditorAction()
+    data class UpdateText(val newText: String? = null) : MemeEditorAction()
     data object ConfirmEditing: MemeEditorAction()
     data object CancelEditing : MemeEditorAction()
 
@@ -204,17 +204,22 @@ class MemeEditorViewModel(
         _state = _state.copy(showEditDialog = true)
     }
 
-    private fun updateText(newText: String) {
+    private fun updateText(newText: String?) {
         state.currentlyEditedTextBox?.let { edited ->
-            val newTextBox = edited.currentTextBox.copy(text = newText)
-
-            _state = _state.copy(
-                textBoxes = state.textBoxes.map {
-                    if (it.id == edited.currentTextBox.id) newTextBox else it
-                },
-                currentlyEditedTextBox = edited.copy(currentTextBox = newTextBox),
-                showEditDialog = false
-            )
+            newText?.let { text ->
+                val newTextBox = edited.currentTextBox.copy(text = text)
+                _state = _state.copy(
+                    textBoxes = state.textBoxes.map {
+                        if (it.id == edited.currentTextBox.id) newTextBox else it
+                    },
+                    currentlyEditedTextBox = edited.copy(currentTextBox = newTextBox),
+                    showEditDialog = false
+                )
+            } ?: run {
+                _state = _state.copy(
+                    showEditDialog = false
+                )
+            }
         }
     }
 

@@ -197,7 +197,7 @@ fun MemeEditorScreen(
             if (state.showEditDialog && state.currentlyEditedTextBox != null) {
                 EditTextDialog(
                     initialText = state.currentlyEditedTextBox.currentTextBox.text,
-                    onDismiss = { onAction(MemeEditorAction.CancelEditing) },
+                    onDismiss = { onAction(MemeEditorAction.UpdateText()) },
                     onConfirm = { newText ->
                         onAction(MemeEditorAction.UpdateText(newText))
                     }
