@@ -28,6 +28,7 @@ data class MemeEditorState(
     val textBoxes: List<TextBox> = emptyList(),
     val currentlyEditedTextBox: CurrentlyEditedTextBox? = null,
     val showEditDialog: Boolean = false,
+    val showDiscardChangesConfirmationDialog: Boolean = false,
     val imageOffset: Offset = Offset.Zero,
     val imageSize: IntSize = IntSize.Zero,
     val undoStack: List<UndoRedoAction> = emptyList(),
@@ -40,35 +41,37 @@ sealed class UndoRedoAction {
     data class UpdateTextBoxInUndoStack(val oldTextBox: TextBox, val newTextBox: TextBox) : UndoRedoAction()
 }
 
-sealed class MemeEditorAction {
+sealed interface MemeEditorAction {
 
-    data object OnArrowBackClick : MemeEditorAction()
+    data object OnArrowBackClick : MemeEditorAction
+    data object NavigateBackDiscardingChanges : MemeEditorAction
 
     // Default Editor actions
-    data object Undo : MemeEditorAction()
-    data object Redo : MemeEditorAction()
-    data object AddTextBox : MemeEditorAction()
-    data class SaveMeme(@DrawableRes val resId: Int) : MemeEditorAction()
+    data object Undo : MemeEditorAction
+    data object Redo : MemeEditorAction
+    data object AddTextBox : MemeEditorAction
+    data class SaveMeme(@DrawableRes val resId: Int) : MemeEditorAction
 
-    data object ToggleFont : MemeEditorAction()
-    data class UpdateTextColor(val color: MemeTextColor) : MemeEditorAction()
-    data class UpdateFontSize(val newFontSize: Float) : MemeEditorAction()
+    data object ToggleFont : MemeEditorAction
+    data class UpdateTextColor(val color: MemeTextColor) : MemeEditorAction
+    data class UpdateFontSize(val newFontSize: Float) : MemeEditorAction
 
-    data object ShowEditTextDialog : MemeEditorAction()
-    data class UpdateText(val newText: String? = null) : MemeEditorAction()
-    data object ConfirmEditing: MemeEditorAction()
-    data object CancelEditing : MemeEditorAction()
+    data object ShowEditTextDialog : MemeEditorAction
+    data class ShowDiscardChangesConfirmationDialog(val isDisplay: Boolean) : MemeEditorAction
+    data class UpdateText(val newText: String? = null) : MemeEditorAction
+    data object ConfirmEditing : MemeEditorAction
+    data object CancelEditing : MemeEditorAction
 
-    data class UpdateTextBoxPosition(val id: Int, val newPos: Offset) : MemeEditorAction()
-    data class DeleteTextBox(val id: Int) : MemeEditorAction()
-    data class SelectTextBox(val textBox: TextBox) : MemeEditorAction()
-    data class UpdateImagePosition(val offset: Offset, val size: IntSize) : MemeEditorAction()
-    data class UpdateFont(val font: MemeFont) : MemeEditorAction()
+    data class UpdateTextBoxPosition(val id: Int, val newPos: Offset) : MemeEditorAction
+    data class DeleteTextBox(val id: Int) : MemeEditorAction
+    data class SelectTextBox(val textBox: TextBox) : MemeEditorAction
+    data class UpdateImagePosition(val offset: Offset, val size: IntSize) : MemeEditorAction
+    data class UpdateFont(val font: MemeFont) : MemeEditorAction
 
 }
 
 sealed interface MemeEditorEvent {
-    data object OnNavigateBack: MemeEditorEvent
+    data object OnNavigateBack : MemeEditorEvent
     data class OnSaveResult(val success: Boolean, val filePath: String? = null) : MemeEditorEvent
 }
 
@@ -96,16 +99,17 @@ class MemeEditorViewModel(
             is MemeEditorAction.UpdateFontSize -> setFontSize(action.newFontSize)
             is MemeEditorAction.UpdateTextColor -> setTextColor(action.color)
             is MemeEditorAction.ShowEditTextDialog -> showEditTextDialog()
+            is MemeEditorAction.ShowDiscardChangesConfirmationDialog -> showDiscardChangesConfirmationDialog(action.isDisplay)
             is MemeEditorAction.UpdateText -> updateText(action.newText)
             is MemeEditorAction.CancelEditing -> cancelEditing()
-            is MemeEditorAction.ConfirmEditing -> { confirmEditing() }
+            is MemeEditorAction.ConfirmEditing -> confirmEditing()
             is MemeEditorAction.UpdateTextBoxPosition -> updateTextBoxPosition(action.id, action.newPos)
             is MemeEditorAction.DeleteTextBox -> deleteTextBox(action.id)
             is MemeEditorAction.SelectTextBox -> selectTextBox(action.textBox)
             is MemeEditorAction.UpdateImagePosition -> updateImagePosition(action.offset, action.size)
             is MemeEditorAction.OnArrowBackClick -> navigateBack()
+            is MemeEditorAction.NavigateBackDiscardingChanges -> navigateBack(discardChanges = true)
             is MemeEditorAction.UpdateFont -> updateFont(action.font)
-
         }
     }
 
@@ -179,6 +183,7 @@ class MemeEditorViewModel(
             updateCurrentlyEditedTextBox(newTextBox)
         }
     }
+
     private fun setTextColor(color: MemeTextColor) {
         state.currentlyEditedTextBox?.let { edited ->
             val newTextBox = edited.currentTextBox.copy(
@@ -202,6 +207,10 @@ class MemeEditorViewModel(
 
     private fun showEditTextDialog() {
         _state = _state.copy(showEditDialog = true)
+    }
+
+    private fun showDiscardChangesConfirmationDialog(isDisplay: Boolean) {
+        _state = _state.copy(showDiscardChangesConfirmationDialog = isDisplay)
     }
 
     private fun updateText(newText: String?) {
@@ -275,6 +284,7 @@ class MemeEditorViewModel(
                         null else _state.currentlyEditedTextBox
                 )
             }
+
             is UndoRedoAction.DeleteTextBoxFromUndoStack -> {
                 _state.copy(
                     textBoxes = _state.textBoxes + lastAction.textBox,
@@ -282,6 +292,7 @@ class MemeEditorViewModel(
                     redoStack = _state.redoStack + lastAction
                 )
             }
+
             is UndoRedoAction.UpdateTextBoxInUndoStack -> {
                 val updatedBoxes = _state.textBoxes.map {
                     if (it.id == lastAction.newTextBox.id) lastAction.oldTextBox else it
@@ -313,6 +324,7 @@ class MemeEditorViewModel(
                     undoStack = _state.undoStack + lastAction
                 )
             }
+
             is UndoRedoAction.DeleteTextBoxFromUndoStack -> {
                 _state.copy(
                     textBoxes = _state.textBoxes.filter { it.id != lastAction.textBox.id },
@@ -322,6 +334,7 @@ class MemeEditorViewModel(
                         null else _state.currentlyEditedTextBox
                 )
             }
+
             is UndoRedoAction.UpdateTextBoxInUndoStack -> {
                 val updatedBoxes = _state.textBoxes.map {
                     if (it.id == lastAction.oldTextBox.id) lastAction.newTextBox else it
@@ -354,8 +367,7 @@ class MemeEditorViewModel(
                     if (edited.isNew) {
                         deleteTextBox(edited.currentTextBox.id, useUndo = false)
                         return
-                    }
-                    else {
+                    } else {
                         _state = _state.copy(textBoxes = updated)
                     }
                 }
@@ -373,7 +385,12 @@ class MemeEditorViewModel(
                     if (edited.isNew) {
                         addToUndoStack(UndoRedoAction.AddTextBoxToUndoStack(edited.currentTextBox))
                     } else {
-                        addToUndoStack(UndoRedoAction.UpdateTextBoxInUndoStack(textBoxBeforeChanges, edited.currentTextBox))
+                        addToUndoStack(
+                            UndoRedoAction.UpdateTextBoxInUndoStack(
+                                textBoxBeforeChanges,
+                                edited.currentTextBox
+                            )
+                        )
                     }
                 }
             }
@@ -396,9 +413,14 @@ class MemeEditorViewModel(
         _state = _state.copy(imageOffset = offset, imageSize = size)
     }
 
-    private fun navigateBack() {
+    private fun navigateBack(discardChanges: Boolean = false) {
         viewModelScope.launch {
-            eventChannel.send(MemeEditorEvent.OnNavigateBack)
+            if (state.redoStack.isNotEmpty() && !discardChanges) {
+                // Show confirmation dialog if there are unsaved changes
+                onAction(MemeEditorAction.ShowDiscardChangesConfirmationDialog(isDisplay = true))
+            } else {
+                eventChannel.send(MemeEditorEvent.OnNavigateBack)
+            }
         }
     }
 

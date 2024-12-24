@@ -1,6 +1,5 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.components
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -19,14 +18,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -38,11 +35,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -51,14 +46,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons.meme
 import com.mobilecampus.mastermeme.core.presentation.design_system.RoundedCheckbox
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import com.mobilecampus.mastermeme.meme.presentation.screens.meme_list.GradientOverlay
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.reflect.KProperty1
 
 
 object AnimationSpecs {
@@ -216,7 +209,7 @@ fun LazyGridScope.userMemes(
 ) {
     itemsIndexed(
         items = memes,
-        key = { index, meme -> meme.hashCode()}
+        key = { index, meme -> meme.hashCode() }
     ) { index, meme ->
         Box(
             modifier = Modifier
@@ -364,22 +357,22 @@ fun ImageMemeCard(
     meme: MemeItem.ImageMeme,
     onClick: (MemeItem.ImageMeme) -> Unit,
     modifier: Modifier = Modifier,
-    onFavoriteToggle: ((MemeItem.ImageMeme) -> Unit)? = null,
+    onFavoriteToggle: (MemeItem.ImageMeme) -> Unit = {},
     isSelectionMode: Boolean = false,
     isSelected: Boolean = false,
-    onSelectionToggle: ((MemeItem.ImageMeme, Boolean) -> Unit)? = null,
+    onSelectionToggle: (MemeItem.ImageMeme, Boolean) -> Unit = { _, _ -> },
 ) {
     MemeCardBase(
         onClick = {
             if (isSelectionMode) {
-                onSelectionToggle?.invoke(meme, !isSelected)
+                onSelectionToggle(meme, !isSelected)
             } else {
                 onClick(meme)
             }
         },
         onLongClick = {
             if (!isSelectionMode) {
-                onSelectionToggle?.invoke(meme, true)
+                onSelectionToggle(meme, true)
             }
         },
         modifier = modifier
@@ -397,7 +390,7 @@ fun ImageMemeCard(
             RoundedCheckbox(
                 checked = isSelected,
                 onCheckedChange = { checked ->
-                    onSelectionToggle?.invoke(meme, checked)
+                    onSelectionToggle(meme, checked)
                 },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -406,7 +399,7 @@ fun ImageMemeCard(
         }
 
         // Favorite button (only shown when not in selection mode)
-        if (!isSelectionMode && onFavoriteToggle != null) {
+        if (!isSelectionMode) {
             IconButton(
                 onClick = { onFavoriteToggle(meme) },
                 modifier = Modifier

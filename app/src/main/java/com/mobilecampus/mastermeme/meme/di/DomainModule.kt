@@ -12,7 +12,6 @@ import com.mobilecampus.mastermeme.meme.domain.use_case.GetTemplatesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.SaveMemeUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ShareMemesUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ToggleFavoriteUseCase
-import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val domainModule = module {

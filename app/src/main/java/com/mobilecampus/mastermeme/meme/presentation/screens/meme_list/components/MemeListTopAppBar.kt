@@ -16,22 +16,24 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppTopAppBar
 import com.mobilecampus.mastermeme.meme.domain.model.SortOption
+import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 
 @Composable
 fun MemeListTopAppBar(
     selectedItemsCount: Int,
     isDropdownMenuExpanded: Boolean,
     selectedSortOption: SortOption,
-    onDropDownMenuClick: () -> Unit,
-    onCancelSelection: () -> Unit,
-    onDropdownMenuDismiss: () -> Unit,
-    onDropdownMenuItemClick: (SortOption) -> Unit,
-    onDeleteClick: () -> Unit,
-    onShareClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDropDownMenuClick: () -> Unit = {},
+    onCancelSelection: () -> Unit = {},
+    onDropdownMenuDismiss: () -> Unit = {},
+    onDropdownMenuItemClick: (SortOption) -> Unit = {},
+    onDeleteClick: () -> Unit = {},
+    onShareClick: () -> Unit = {},
 ) {
     AppTopAppBar(
         title = if (selectedItemsCount > 0) {
@@ -80,4 +82,16 @@ fun MemeListTopAppBar(
         },
         modifier = modifier
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MemeListTopAppBarPreview() {
+    MasterMemeTheme {
+        MemeListTopAppBar(
+            selectedItemsCount = 0,
+            isDropdownMenuExpanded = false,
+            selectedSortOption = SortOption.NEWEST_FIRST,
+        )
+    }
 }

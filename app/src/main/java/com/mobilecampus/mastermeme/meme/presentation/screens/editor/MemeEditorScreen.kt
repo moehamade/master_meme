@@ -24,6 +24,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -36,6 +37,7 @@ import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.BottomBarLayout
+import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.ConfirmationDialog
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DraggableTextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.EditTextDialog
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.MemeEditorBottomBar
@@ -54,14 +56,18 @@ fun MemeEditorScreenRoot(
 
     ObserveAsEvents(flow = viewModel.events) { event ->
         when (event) {
-            MemeEditorEvent.OnNavigateBack -> onNavigateBack()
+            is MemeEditorEvent.OnNavigateBack -> onNavigateBack()
+
             is MemeEditorEvent.OnSaveResult -> {
-                val success = event.success
-                val path = event.filePath
-                path?.let {
+                event.filePath?.let {
                     onNavigateBack()
                 }
-                val message = if (success) "Meme saved successfully!" else "Failed to save meme!"
+
+                val message = if (event.success)
+                    context.getString(R.string.toast_meme_saved_successfully)
+                else
+                    context.getString(R.string.toast_failed_to_save_meme)
+
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }
         }
@@ -200,6 +206,21 @@ fun MemeEditorScreen(
                     onDismiss = { onAction(MemeEditorAction.UpdateText()) },
                     onConfirm = { newText ->
                         onAction(MemeEditorAction.UpdateText(newText))
+                    }
+                )
+            }
+
+            // Discard Changes Dialog
+            if (state.showDiscardChangesConfirmationDialog) {
+                ConfirmationDialog(
+                    title = stringResource(R.string.dialog_discard_changes_title),
+                    message = stringResource(R.string.dialog_discard_changes_message),
+                    confirmTextButton= stringResource(R.string.dialog_leave_button),
+                    cancelTextButton= stringResource(R.string.dialog_cancel_button),
+                    onDismiss = { onAction(MemeEditorAction.ShowDiscardChangesConfirmationDialog(isDisplay = false)) },
+                    onConfirm = {
+                        onAction(MemeEditorAction.ShowDiscardChangesConfirmationDialog(isDisplay = false))
+                        onAction(MemeEditorAction.NavigateBackDiscardingChanges)
                     }
                 )
             }
