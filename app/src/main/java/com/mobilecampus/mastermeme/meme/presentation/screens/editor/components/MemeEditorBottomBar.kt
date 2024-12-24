@@ -477,7 +477,7 @@ fun MemeEditorBottomBarPreview() {
     MasterMemeBackground {
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceEvenly
+            verticalArrangement = Arrangement.Bottom
         ) {
             MemeEditorBottomBar(
                 modifier = Modifier.systemBarsPadding(),

@@ -314,6 +314,7 @@ fun MemeListScreen(
                 enter = fadeIn(),
                 exit = fadeOut(animationSpec = tween(durationMillis = 100))
             ) {
+                // TODO: This dialog can be changed in favor of ConfirmationDialog passing the appropriate parameters
                 DeleteMemesDialog(
                     selectedCount = state.selectedMemesCount,
                     onConfirm = {

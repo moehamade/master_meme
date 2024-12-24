@@ -94,7 +94,7 @@ fun EditTextDialog(
 
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
-private fun DraggableTextBoxPreview() {
+private fun EditTextDialogPreview() {
     MasterMemeTheme {
         Box(
             modifier = Modifier
