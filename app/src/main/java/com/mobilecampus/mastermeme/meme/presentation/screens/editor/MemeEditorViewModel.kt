@@ -14,6 +14,7 @@ import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.domain.use_case.SaveMemeUseCase
 import com.mobilecampus.mastermeme.meme.domain.use_case.ShareMemesUseCase
+import com.mobilecampus.mastermeme.meme.domain.use_case.ShareTemporaryMeme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -74,6 +75,9 @@ sealed interface MemeEditorAction {
     data object ShowBottomSheet : MemeEditorAction
     data object HideBottomSheet : MemeEditorAction
 
+    data class ShareMeme(@DrawableRes val resId: Int) : MemeEditorAction
+
+
 }
 
 sealed interface MemeEditorEvent {
@@ -83,8 +87,9 @@ sealed interface MemeEditorEvent {
 
 class MemeEditorViewModel(
     private val saveMemeUseCase: SaveMemeUseCase,
-    private val shareMemeUseCase: ShareMemesUseCase
-) : ViewModel() {
+    private val shareMemeUseCase: ShareMemesUseCase,
+    private val shareTemporaryMeme: ShareTemporaryMeme
+    ) : ViewModel() {
 
     private var _state by mutableStateOf(MemeEditorState())
     val state: MemeEditorState get() = _state
@@ -119,6 +124,18 @@ class MemeEditorViewModel(
             is MemeEditorAction.UpdateFont -> updateFont(action.font)
             is MemeEditorAction.ShowBottomSheet -> handleBottomSheetVisibility(true)
             is MemeEditorAction.HideBottomSheet -> handleBottomSheetVisibility(false)
+            is MemeEditorAction.ShareMeme -> shareMeme(action.resId)
+        }
+    }
+
+    private fun shareMeme(resId: Int) {
+        viewModelScope.launch {
+            shareTemporaryMeme(
+                backgroundImageResId = resId,
+                textBoxes = _state.textBoxes,
+                imageWidth = _state.imageSize.width,
+                imageHeight = _state.imageSize.height
+            )
         }
     }
 

@@ -114,7 +114,9 @@ fun MemeEditorScreen(
                         onAction(MemeEditorAction.SaveMeme(resId = resId))
                     }
                 },
-                onShareClick = {},
+                onShareClick = {
+                    onAction(MemeEditorAction.ShareMeme(resId = resId))
+                },
                 modifier = Modifier
             )
         }

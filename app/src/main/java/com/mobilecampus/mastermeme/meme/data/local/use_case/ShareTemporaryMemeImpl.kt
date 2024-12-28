@@ -6,14 +6,12 @@ import com.mobilecampus.mastermeme.meme.domain.MemeRenderer
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.domain.use_case.ShareTemporaryMeme
 import com.mobilecampus.mastermeme.meme.domain.util.FileManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
 
 class ShareTemporaryMemeImpl(
     private val context: Context,
     private val fileManager: FileManager,
-    private val memeRenderer: MemeRenderer // Inject the renderer
+    private val memeRenderer: MemeRenderer
 ) : ShareTemporaryMeme {
     override suspend fun invoke(
         backgroundImageResId: Int,
@@ -28,19 +26,13 @@ class ShareTemporaryMemeImpl(
             createNewFile()
         }
 
-        try {
-            memeRenderer.renderMeme(
-                backgroundImageResId = backgroundImageResId,
-                textBoxes = textBoxes,
-                imageSize = IntSize(imageWidth, imageHeight),
-                outputFile = tempFile
-            )
+        memeRenderer.renderMeme(
+            backgroundImageResId = backgroundImageResId,
+            textBoxes = textBoxes,
+            imageSize = IntSize(imageWidth, imageHeight),
+            outputFile = tempFile
+        )
 
-            fileManager.shareFiles(setOf(tempFile.absolutePath))
-        } finally {
-            withContext(Dispatchers.IO) {
-                tempFile.delete()
-            }
-        }
+        fileManager.shareFiles(setOf(tempFile.absolutePath))
     }
 }
