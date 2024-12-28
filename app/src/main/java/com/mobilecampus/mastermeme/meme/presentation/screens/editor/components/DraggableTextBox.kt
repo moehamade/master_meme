@@ -109,7 +109,7 @@ fun DraggableTextBox(
                 )
                 .border(
                     width = 1.dp,
-                    color = if (isSelected) Color.Yellow else Color.White,
+                    color = Color.White,
                     shape = RoundedCornerShape(4.dp)
                 )
         ) {
