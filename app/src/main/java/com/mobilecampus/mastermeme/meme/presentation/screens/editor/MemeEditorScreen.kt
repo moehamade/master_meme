@@ -9,10 +9,14 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -30,6 +34,7 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
+import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons.meme
 import com.mobilecampus.mastermeme.core.presentation.design_system.CenterAlignedAppTopAppBar
 import com.mobilecampus.mastermeme.core.presentation.util.ObserveAsEvents
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
@@ -41,7 +46,9 @@ import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.C
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DraggableTextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.EditTextDialog
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.MemeEditorBottomBar
+import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.MemeEditorBottomSheetContent
 import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -80,6 +87,7 @@ fun MemeEditorScreenRoot(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemeEditorScreen(
     @DrawableRes resId: Int,
@@ -89,6 +97,28 @@ fun MemeEditorScreen(
     val context = LocalContext.current
     val imageBitmap = ImageBitmap.imageResource(context.resources, resId)
     val imageAspectRatio = imageBitmap.width.toFloat() / imageBitmap.height.toFloat()
+    val bottomSheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+
+    if (state.shouldShowBottomSheet) {
+        ModalBottomSheet(
+            sheetState = bottomSheetState,
+            onDismissRequest = {
+                onAction(MemeEditorAction.HideBottomSheet)
+            }
+        ) {
+            MemeEditorBottomSheetContent(
+                onSaveClick = {
+                    scope.launch {
+                        bottomSheetState.hide()
+                        onAction(MemeEditorAction.SaveMeme(resId = resId))
+                    }
+                },
+                onShareClick = {},
+                modifier = Modifier
+            )
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -123,7 +153,7 @@ fun MemeEditorScreen(
                 onUndo = { onAction(MemeEditorAction.Undo) },
                 onRedo = { onAction(MemeEditorAction.Redo) },
                 onAddTextBox = { onAction(MemeEditorAction.AddTextBox) },
-                onSaveMeme = { onAction(MemeEditorAction.SaveMeme(resId)) },
+                onSaveMeme = { onAction(MemeEditorAction.ShowBottomSheet) },
                 onCancelTextBoxEditing = { onAction(MemeEditorAction.CancelEditing) },
                 onConfirmTextBoxEditing = { onAction(MemeEditorAction.ConfirmEditing) },
                 onFontSelected = { font -> onAction(MemeEditorAction.UpdateFont(font)) },
@@ -215,9 +245,15 @@ fun MemeEditorScreen(
                 ConfirmationDialog(
                     title = stringResource(R.string.dialog_discard_changes_title),
                     message = stringResource(R.string.dialog_discard_changes_message),
-                    confirmTextButton= stringResource(R.string.dialog_leave_button),
-                    cancelTextButton= stringResource(R.string.dialog_cancel_button),
-                    onDismiss = { onAction(MemeEditorAction.ShowDiscardChangesConfirmationDialog(isDisplay = false)) },
+                    confirmTextButton = stringResource(R.string.dialog_leave_button),
+                    cancelTextButton = stringResource(R.string.dialog_cancel_button),
+                    onDismiss = {
+                        onAction(
+                            MemeEditorAction.ShowDiscardChangesConfirmationDialog(
+                                isDisplay = false
+                            )
+                        )
+                    },
                     onConfirm = {
                         onAction(MemeEditorAction.ShowDiscardChangesConfirmationDialog(isDisplay = false))
                         onAction(MemeEditorAction.NavigateBackDiscardingChanges)
