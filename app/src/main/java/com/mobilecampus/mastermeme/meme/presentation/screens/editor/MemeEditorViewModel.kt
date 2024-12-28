@@ -13,6 +13,7 @@ import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextColor
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.domain.use_case.SaveMemeUseCase
+import com.mobilecampus.mastermeme.meme.domain.use_case.ShareMemesUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -31,6 +32,7 @@ data class MemeEditorState(
     val showDiscardChangesConfirmationDialog: Boolean = false,
     val imageOffset: Offset = Offset.Zero,
     val imageSize: IntSize = IntSize.Zero,
+    val shouldShowBottomSheet: Boolean = false,
     val undoStack: List<UndoRedoAction> = emptyList(),
     val redoStack: List<UndoRedoAction> = emptyList()
 )
@@ -38,7 +40,8 @@ data class MemeEditorState(
 sealed class UndoRedoAction {
     data class AddTextBoxToUndoStack(val textBox: TextBox) : UndoRedoAction()
     data class DeleteTextBoxFromUndoStack(val textBox: TextBox) : UndoRedoAction()
-    data class UpdateTextBoxInUndoStack(val oldTextBox: TextBox, val newTextBox: TextBox) : UndoRedoAction()
+    data class UpdateTextBoxInUndoStack(val oldTextBox: TextBox, val newTextBox: TextBox) :
+        UndoRedoAction()
 }
 
 sealed interface MemeEditorAction {
@@ -68,6 +71,9 @@ sealed interface MemeEditorAction {
     data class UpdateImagePosition(val offset: Offset, val size: IntSize) : MemeEditorAction
     data class UpdateFont(val font: MemeFont) : MemeEditorAction
 
+    data object ShowBottomSheet : MemeEditorAction
+    data object HideBottomSheet : MemeEditorAction
+
 }
 
 sealed interface MemeEditorEvent {
@@ -76,7 +82,8 @@ sealed interface MemeEditorEvent {
 }
 
 class MemeEditorViewModel(
-    private val saveMemeUseCase: SaveMemeUseCase
+    private val saveMemeUseCase: SaveMemeUseCase,
+    private val shareMemeUseCase: ShareMemesUseCase
 ) : ViewModel() {
 
     private var _state by mutableStateOf(MemeEditorState())
@@ -110,6 +117,14 @@ class MemeEditorViewModel(
             is MemeEditorAction.OnArrowBackClick -> navigateBack()
             is MemeEditorAction.NavigateBackDiscardingChanges -> navigateBack(discardChanges = true)
             is MemeEditorAction.UpdateFont -> updateFont(action.font)
+            is MemeEditorAction.ShowBottomSheet -> handleBottomSheetVisibility(true)
+            is MemeEditorAction.HideBottomSheet -> handleBottomSheetVisibility(false)
+        }
+    }
+
+    private fun handleBottomSheetVisibility(shouldShowBottomSheet: Boolean) {
+        viewModelScope.launch {
+            _state = _state.copy(shouldShowBottomSheet = shouldShowBottomSheet)
         }
     }
 
@@ -415,7 +430,7 @@ class MemeEditorViewModel(
 
     private fun navigateBack(discardChanges: Boolean = false) {
         viewModelScope.launch {
-            if (state.redoStack.isNotEmpty() && !discardChanges) {
+            if (state.redoStack.isNotEmpty() || state.undoStack.isNotEmpty() && !discardChanges) {
                 // Show confirmation dialog if there are unsaved changes
                 onAction(MemeEditorAction.ShowDiscardChangesConfirmationDialog(isDisplay = true))
             } else {
