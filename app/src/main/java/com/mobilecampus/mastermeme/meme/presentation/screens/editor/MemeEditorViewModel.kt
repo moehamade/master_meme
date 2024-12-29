@@ -200,6 +200,7 @@ class MemeEditorViewModel(
         }
     }
 
+
     private fun addTextBox() {
         if (state.imageSize.width != 0 && state.imageSize.height != 0) {
             val text = "TAP TWICE TO EDIT"
@@ -218,18 +219,22 @@ class MemeEditorViewModel(
                 offsetStep = 20f
             )
 
+            // Get style from last edited text box or use default
+            val style = state.currentlyEditedTextBox?.currentTextBox?.style ?:
+            MemeTextStyle(font = MemeFont.IMPACT, fontSize = 36f)
+
             val newBox = TextBox(
                 id = nextId++,
                 text = text,
                 position = nonOverlappingPosition,
-                style = MemeTextStyle(font = MemeFont.IMPACT, fontSize = 36f)
+                style = style.copy() // Use copy to avoid reference issues
             )
 
             _state = _state.copy(
                 textBoxes = state.textBoxes + newBox,
                 currentlyEditedTextBox = CurrentlyEditedTextBox(
                     currentTextBox = newBox,
-                    currentTextBoxBeforeChanges = newBox,
+                    currentTextBoxBeforeChanges = newBox.copy(),
                     isNew = true
                 )
             )
@@ -257,17 +262,16 @@ class MemeEditorViewModel(
             val newTextBox = edited.currentTextBox.copy(
                 style = edited.currentTextBox.style.copy(fontSize = newSize)
             )
-
             updateCurrentlyEditedTextBox(newTextBox)
         }
     }
+
 
     private fun setTextColor(color: MemeTextColor) {
         state.currentlyEditedTextBox?.let { edited ->
             val newTextBox = edited.currentTextBox.copy(
                 style = edited.currentTextBox.style.copy(color = color)
             )
-
             updateCurrentlyEditedTextBox(newTextBox)
         }
     }
@@ -278,7 +282,11 @@ class MemeEditorViewModel(
                 textBoxes = state.textBoxes.map {
                     if (it.id == edited.currentTextBox.id) newTextBox else it
                 },
-                currentlyEditedTextBox = edited.copy(currentTextBox = newTextBox)
+                currentlyEditedTextBox = edited.copy(
+                    currentTextBox = newTextBox,
+                    // Keep the original before-changes text box
+                    currentTextBoxBeforeChanges = edited.currentTextBoxBeforeChanges
+                )
             )
         }
     }
@@ -478,10 +486,30 @@ class MemeEditorViewModel(
     }
 
     private fun selectTextBox(textBox: TextBox) {
+        // If we're selecting the same text box, don't reset anything
+        if (state.currentlyEditedTextBox?.currentTextBox?.id == textBox.id) {
+            return
+        }
+
+        // If we were editing another text box, save its state first
+        state.currentlyEditedTextBox?.let { edited ->
+            if (edited.currentTextBox != edited.currentTextBoxBeforeChanges) {
+                addToUndoStack(
+                    UndoRedoAction.UpdateTextBoxInUndoStack(
+                        edited.currentTextBoxBeforeChanges ?: edited.currentTextBox,
+                        edited.currentTextBox
+                    )
+                )
+            }
+        }
+
+        // Find the text box in our current list to get its latest state
+        val currentTextBox = state.textBoxes.find { it.id == textBox.id } ?: textBox
+
         _state = _state.copy(
             currentlyEditedTextBox = CurrentlyEditedTextBox(
-                currentTextBox = textBox,
-                currentTextBoxBeforeChanges = textBox,
+                currentTextBox = currentTextBox,
+                currentTextBoxBeforeChanges = currentTextBox.copy(),
                 isNew = false
             )
         )
