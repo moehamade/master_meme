@@ -21,7 +21,7 @@ val domainModule = module {
     factory<GetMemesUseCase> { GetMemesUseCaseImpl(get()) }
     factory<ToggleFavoriteUseCase> { ToggleFavoriteUseCaseImpl(get()) }
     factory<DeleteMemeUseCase> { DeleteMemeUseCaseImpl(get(), get()) }
-    factory<GetTemplatesUseCase> { GetTemplatesUseCaseImpl(get()) }
+    factory<GetTemplatesUseCase> { GetTemplatesUseCaseImpl() }
     factory<SaveMemeUseCase> { SaveMemeUseCaseImpl(get(), get(), get()) }
     single<ShareTemporaryMeme> { ShareTemporaryMemeImpl(get(), get(), get()) }
     single<ShareMemesUseCase> { ShareMemesUseCaseImpl(get(), get()) }
