@@ -560,13 +560,21 @@ private fun measureInitialTextBoxPosition(
     fontSizeSp: Float,
     imageSize: IntSize
 ): Pair<Offset, androidx.compose.ui.geometry.Size> {
-    val approximateWidth = fontSizeSp * text.length / 2f
-    val approximateHeight = fontSizeSp * 2f
+    val imageWidth = imageSize.width.toFloat()
+    val imageHeight = imageSize.height.toFloat()
 
-    val initialCenterX = (imageSize.width - approximateWidth) / 2f
-    val initialCenterY = (imageSize.height - approximateHeight) / 2f
+    // Calculate text dimensions
+    val approximateWidth = fontSizeSp * text.length * 0.4f
+    val approximateHeight = fontSizeSp * 1.5f
 
-    return Offset(initialCenterX, initialCenterY) to androidx.compose.ui.geometry.Size(
+    // Calculate the text offset to account for coordinate space differences
+    val textOffset = imageWidth * 0.273f  // 350f / 1280f ≈ 0.273
+
+    // Calculate centered position with coordinate adjustment
+    val centerX = imageWidth / 2f - approximateWidth / 2f - textOffset
+    val centerY = imageHeight / 2f - approximateHeight / 2f
+
+    return Offset(centerX, centerY) to androidx.compose.ui.geometry.Size(
         approximateWidth,
         approximateHeight
     )
