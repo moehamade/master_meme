@@ -35,7 +35,9 @@ data class MemeEditorState(
     val imageSize: IntSize = IntSize.Zero,
     val shouldShowBottomSheet: Boolean = false,
     val undoStack: List<UndoRedoAction> = emptyList(),
-    val redoStack: List<UndoRedoAction> = emptyList()
+    val redoStack: List<UndoRedoAction> = emptyList(),
+    val editingTextBoxId: Int? = null, // New property to track which text box is being edited
+    val isInEditMode: Boolean = false   // New property to track if we're in edit mode
 )
 
 sealed class UndoRedoAction {
@@ -76,6 +78,10 @@ sealed interface MemeEditorAction {
     data object HideBottomSheet : MemeEditorAction
 
     data class ShareMeme(@DrawableRes val resId: Int) : MemeEditorAction
+
+    data class EnterEditMode(val textBoxId: Int) : MemeEditorAction
+    data object ExitEditMode : MemeEditorAction
+    data class UpdateEditingText(val newText: String) : MemeEditorAction
 
 
 }
@@ -125,7 +131,47 @@ class MemeEditorViewModel(
             is MemeEditorAction.ShowBottomSheet -> handleBottomSheetVisibility(true)
             is MemeEditorAction.HideBottomSheet -> handleBottomSheetVisibility(false)
             is MemeEditorAction.ShareMeme -> shareMeme(action.resId)
+            is MemeEditorAction.EnterEditMode -> enterEditMode(action.textBoxId)
+            is MemeEditorAction.ExitEditMode -> exitEditMode()
+            is MemeEditorAction.UpdateEditingText -> updateEditingText(action.newText)
         }
+    }
+
+    private fun enterEditMode(textBoxId: Int) {
+        _state = _state.copy(
+            editingTextBoxId = textBoxId,
+            isInEditMode = true
+        )
+    }
+
+    private fun exitEditMode() {
+        _state = _state.copy(
+            editingTextBoxId = null,
+            isInEditMode = false
+        )
+    }
+
+    private fun updateEditingText(newText: String) {
+        val editingId = state.editingTextBoxId ?: return
+
+        val updatedBoxes = state.textBoxes.map { textBox ->
+            if (textBox.id == editingId) {
+                textBox.copy(text = newText)
+            } else {
+                textBox
+            }
+        }
+
+        _state = _state.copy(
+            textBoxes = updatedBoxes,
+            currentlyEditedTextBox = state.currentlyEditedTextBox?.let { edited ->
+                if (edited.currentTextBox.id == editingId) {
+                    edited.copy(currentTextBox = edited.currentTextBox.copy(text = newText))
+                } else {
+                    edited
+                }
+            }
+        )
     }
 
     private fun shareMeme(resId: Int) {
@@ -154,6 +200,7 @@ class MemeEditorViewModel(
         }
     }
 
+
     private fun addTextBox() {
         if (state.imageSize.width != 0 && state.imageSize.height != 0) {
             val text = "TAP TWICE TO EDIT"
@@ -172,18 +219,22 @@ class MemeEditorViewModel(
                 offsetStep = 20f
             )
 
+            // Get style from last edited text box or use default
+            val style = state.currentlyEditedTextBox?.currentTextBox?.style ?:
+            MemeTextStyle(font = MemeFont.IMPACT, fontSize = 36f)
+
             val newBox = TextBox(
                 id = nextId++,
                 text = text,
                 position = nonOverlappingPosition,
-                style = MemeTextStyle(font = MemeFont.IMPACT, fontSize = 36f)
+                style = style.copy() // Use copy to avoid reference issues
             )
 
             _state = _state.copy(
                 textBoxes = state.textBoxes + newBox,
                 currentlyEditedTextBox = CurrentlyEditedTextBox(
                     currentTextBox = newBox,
-                    currentTextBoxBeforeChanges = newBox,
+                    currentTextBoxBeforeChanges = newBox.copy(),
                     isNew = true
                 )
             )
@@ -211,17 +262,16 @@ class MemeEditorViewModel(
             val newTextBox = edited.currentTextBox.copy(
                 style = edited.currentTextBox.style.copy(fontSize = newSize)
             )
-
             updateCurrentlyEditedTextBox(newTextBox)
         }
     }
+
 
     private fun setTextColor(color: MemeTextColor) {
         state.currentlyEditedTextBox?.let { edited ->
             val newTextBox = edited.currentTextBox.copy(
                 style = edited.currentTextBox.style.copy(color = color)
             )
-
             updateCurrentlyEditedTextBox(newTextBox)
         }
     }
@@ -232,7 +282,11 @@ class MemeEditorViewModel(
                 textBoxes = state.textBoxes.map {
                     if (it.id == edited.currentTextBox.id) newTextBox else it
                 },
-                currentlyEditedTextBox = edited.copy(currentTextBox = newTextBox)
+                currentlyEditedTextBox = edited.copy(
+                    currentTextBox = newTextBox,
+                    // Keep the original before-changes text box
+                    currentTextBoxBeforeChanges = edited.currentTextBoxBeforeChanges
+                )
             )
         }
     }
@@ -432,10 +486,30 @@ class MemeEditorViewModel(
     }
 
     private fun selectTextBox(textBox: TextBox) {
+        // If we're selecting the same text box, don't reset anything
+        if (state.currentlyEditedTextBox?.currentTextBox?.id == textBox.id) {
+            return
+        }
+
+        // If we were editing another text box, save its state first
+        state.currentlyEditedTextBox?.let { edited ->
+            if (edited.currentTextBox != edited.currentTextBoxBeforeChanges) {
+                addToUndoStack(
+                    UndoRedoAction.UpdateTextBoxInUndoStack(
+                        edited.currentTextBoxBeforeChanges ?: edited.currentTextBox,
+                        edited.currentTextBox
+                    )
+                )
+            }
+        }
+
+        // Find the text box in our current list to get its latest state
+        val currentTextBox = state.textBoxes.find { it.id == textBox.id } ?: textBox
+
         _state = _state.copy(
             currentlyEditedTextBox = CurrentlyEditedTextBox(
-                currentTextBox = textBox,
-                currentTextBoxBeforeChanges = textBox,
+                currentTextBox = currentTextBox,
+                currentTextBoxBeforeChanges = currentTextBox.copy(),
                 isNew = false
             )
         )
