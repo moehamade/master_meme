@@ -167,13 +167,7 @@ fun MemeEditorScreen(
                 onFontSelected = { font -> onAction(MemeEditorAction.UpdateFont(font)) },
                 onFontSizeChanged = { onAction(MemeEditorAction.UpdateFontSize(it)) },
                 onColorSelected = { color ->
-                    val memeColor = when (color) {
-                        Color.White -> MemeTextColor.WHITE
-                        Color.Red -> MemeTextColor.RED
-                        Color.Green -> MemeTextColor.GREEN
-                        Color.Blue -> MemeTextColor.BLUE
-                        else -> MemeTextColor.WHITE
-                    }
+                    val memeColor = MemeTextColor.fromColor(color)
                     onAction(MemeEditorAction.UpdateTextColor(memeColor))
                 }
             )
