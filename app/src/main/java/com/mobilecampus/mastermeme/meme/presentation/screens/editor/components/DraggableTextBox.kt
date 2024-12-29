@@ -89,13 +89,17 @@ fun DraggableTextBox(
 
     var textBoxWidth by remember { mutableFloatStateOf(0f) }
     var textBoxHeight by remember { mutableFloatStateOf(0f) }
-    var textBounds by remember { mutableStateOf(Rect.Zero) }
 
-    var textFieldValue by remember(textBox.text) {
-        mutableStateOf(TextFieldValue(
-            text = textBox.text,
-            selection = TextRange(textBox.text.length)
-        ))
+    // Keep cursor position when text changes
+    var textFieldValue by remember {
+        mutableStateOf(TextFieldValue(text = textBox.text))
+    }
+
+    // Update text without changing cursor position
+    LaunchedEffect(textBox.text) {
+        if (textFieldValue.text != textBox.text) {
+            textFieldValue = textFieldValue.copy(text = textBox.text)
+        }
     }
 
     fun completeEditing() {
@@ -115,22 +119,6 @@ fun DraggableTextBox(
             .onSizeChanged { size ->
                 textBoxWidth = size.width.toFloat()
                 textBoxHeight = size.height.toFloat()
-                textBounds = Rect(0f, 0f, size.width.toFloat(), size.height.toFloat())
-            }
-            .pointerInput(isSelected, isEditing) {
-                // Handle taps and check boundaries
-                detectTapGestures(
-                    onTap = { offset ->
-                        if (!isEditing) {
-                            onSelect()
-                        } else if (!textBounds.contains(offset)) {
-                            // Only exit edit mode if tap is outside text boundaries
-                            completeEditing()
-                        }
-                        // If we're editing and tap is inside boundaries, do nothing to allow cursor positioning
-                    },
-                    onDoubleTap = { onDoubleClick() }
-                )
             }
             .pointerInput(isSelected, isEditing) {
                 if (isSelected && !isEditing) {
@@ -148,6 +136,12 @@ fun DraggableTextBox(
                         }
                     )
                 }
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { if (!isEditing) onSelect() },
+                    onDoubleTap = { onDoubleClick() }
+                )
             }
     ) {
         Box(
