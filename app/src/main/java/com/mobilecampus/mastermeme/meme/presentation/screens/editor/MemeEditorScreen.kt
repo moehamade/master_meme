@@ -3,9 +3,7 @@ package com.mobilecampus.mastermeme.meme.presentation.screens.editor
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -19,7 +17,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +37,6 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons
-import com.mobilecampus.mastermeme.core.presentation.design_system.AppIcons.meme
 import com.mobilecampus.mastermeme.core.presentation.design_system.CenterAlignedAppTopAppBar
 import com.mobilecampus.mastermeme.core.presentation.util.ObserveAsEvents
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
@@ -50,7 +46,6 @@ import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.BottomBarLayout
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.ConfirmationDialog
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.DraggableTextBox
-import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.EditTextDialog
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.MemeEditorBottomBar
 import com.mobilecampus.mastermeme.meme.presentation.screens.editor.components.MemeEditorBottomSheetContent
 import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
@@ -263,20 +258,6 @@ fun MemeEditorScreen(
                 )
             }
 
-
-//            if (state.isInEditMode) {
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .clickable(
-//                            interactionSource = remember { MutableInteractionSource() },
-//                            indication = null
-//                        ) {
-//                            onAction(MemeEditorAction.ExitEditMode)
-//                        }
-//                )
-//            }
-
             // Discard Changes Dialog
             if (state.showDiscardChangesConfirmationDialog) {
                 ConfirmationDialog(
@@ -285,11 +266,7 @@ fun MemeEditorScreen(
                     confirmTextButton = stringResource(R.string.dialog_leave_button),
                     cancelTextButton = stringResource(R.string.dialog_cancel_button),
                     onDismiss = {
-                        onAction(
-                            MemeEditorAction.ShowDiscardChangesConfirmationDialog(
-                                isDisplay = false
-                            )
-                        )
+                        onAction(MemeEditorAction.ShowDiscardChangesConfirmationDialog(isDisplay = false))
                     },
                     onConfirm = {
                         onAction(MemeEditorAction.ShowDiscardChangesConfirmationDialog(isDisplay = false))
