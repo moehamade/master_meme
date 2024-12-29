@@ -1,5 +1,7 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor.components
 
+import android.R.attr.singleLine
+import android.graphics.Typeface
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -59,6 +62,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.res.ResourcesCompat
+import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
@@ -86,19 +91,47 @@ fun DraggableTextBox(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
 
     var textBoxWidth by remember { mutableFloatStateOf(0f) }
     var textBoxHeight by remember { mutableFloatStateOf(0f) }
 
-    // Keep cursor position when text changes
+    // Get the appropriate typeface based on the font style
+    val typeface = when (textBox.style.font) {
+        MemeFont.IMPACT -> ResourcesCompat.getFont(context, R.font.impact)
+        MemeFont.SYSTEM -> Typeface.DEFAULT_BOLD
+        MemeFont.ROBOTO_BOLD -> Typeface.DEFAULT_BOLD
+        MemeFont.COMIC -> Typeface.SANS_SERIF
+        MemeFont.STROKE,
+        MemeFont.OUTLINE -> Typeface.DEFAULT_BOLD
+        MemeFont.SHADOWED -> Typeface.DEFAULT_BOLD
+        MemeFont.RETRO -> Typeface.DEFAULT_BOLD
+        MemeFont.HANDWRITTEN -> Typeface.SERIF
+    }
+
+    // Initialize text field value with selection
     var textFieldValue by remember {
-        mutableStateOf(TextFieldValue(text = textBox.text))
+        mutableStateOf(
+            TextFieldValue(
+                text = textBox.text,
+                selection = TextRange(0, textBox.text.length) // Select all text initially
+            )
+        )
     }
 
     // Update text without changing cursor position
     LaunchedEffect(textBox.text) {
         if (textFieldValue.text != textBox.text) {
             textFieldValue = textFieldValue.copy(text = textBox.text)
+        }
+    }
+
+    // Select all text when entering edit mode
+    LaunchedEffect(isEditing) {
+        if (isEditing) {
+            textFieldValue = textFieldValue.copy(
+                selection = TextRange(0, textFieldValue.text.length)
+            )
         }
     }
 
@@ -167,7 +200,8 @@ fun DraggableTextBox(
                     textStyle = TextStyle(
                         fontSize = textBox.style.fontSize.sp,
                         color = textBox.style.color.toFillColor(),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        fontFamily = FontFamily(typeface!!)// Apply the same typeface
                     ),
                     modifier = Modifier
                         .focusRequester(focusRequester)
