@@ -382,7 +382,7 @@ fun TemplateSelectionContent(
                             templates = templates,
                             onTemplateClick = onTemplateSelected,
                             columns = 2,
-                            contentPadding = PaddingValues(0.dp)
+                            contentPadding = PaddingValues(bottom = 70.dp)
                         )
                     }
                 }

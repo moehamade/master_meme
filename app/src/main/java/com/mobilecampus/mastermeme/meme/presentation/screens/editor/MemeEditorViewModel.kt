@@ -84,6 +84,7 @@ sealed interface MemeEditorAction {
     data class UpdateEditingText(val newText: String) : MemeEditorAction
 
 
+
 }
 
 sealed interface MemeEditorEvent {
@@ -125,8 +126,8 @@ class MemeEditorViewModel(
             is MemeEditorAction.DeleteTextBox -> deleteTextBox(action.id)
             is MemeEditorAction.SelectTextBox -> selectTextBox(action.textBox)
             is MemeEditorAction.UpdateImagePosition -> updateImagePosition(action.offset, action.size)
-            is MemeEditorAction.OnArrowBackClick -> navigateBack()
-            is MemeEditorAction.NavigateBackDiscardingChanges -> navigateBack(discardChanges = true)
+            is MemeEditorAction.OnArrowBackClick -> checkNavigateBack()
+            is MemeEditorAction.NavigateBackDiscardingChanges -> forceNavigateBack()
             is MemeEditorAction.UpdateFont -> updateFont(action.font)
             is MemeEditorAction.ShowBottomSheet -> handleBottomSheetVisibility(true)
             is MemeEditorAction.HideBottomSheet -> handleBottomSheetVisibility(false)
@@ -134,6 +135,13 @@ class MemeEditorViewModel(
             is MemeEditorAction.EnterEditMode -> enterEditMode(action.textBoxId)
             is MemeEditorAction.ExitEditMode -> exitEditMode()
             is MemeEditorAction.UpdateEditingText -> updateEditingText(action.newText)
+
+        }
+    }
+
+    private fun forceNavigateBack(){
+        viewModelScope.launch {
+            eventChannel.send(MemeEditorEvent.OnNavigateBack)
         }
     }
 
@@ -519,12 +527,13 @@ class MemeEditorViewModel(
         _state = _state.copy(imageOffset = offset, imageSize = size)
     }
 
-    private fun navigateBack(discardChanges: Boolean = false) {
+    private fun checkNavigateBack() {
         viewModelScope.launch {
-            if (state.redoStack.isNotEmpty() || state.undoStack.isNotEmpty() && !discardChanges) {
+            if (state.redoStack.isNotEmpty() || state.undoStack.isNotEmpty()) {
                 // Show confirmation dialog if there are unsaved changes
                 onAction(MemeEditorAction.ShowDiscardChangesConfirmationDialog(isDisplay = true))
             } else {
+                // Navigate back directly if there are no changes
                 eventChannel.send(MemeEditorEvent.OnNavigateBack)
             }
         }
