@@ -35,7 +35,9 @@ data class MemeEditorState(
     val imageSize: IntSize = IntSize.Zero,
     val shouldShowBottomSheet: Boolean = false,
     val undoStack: List<UndoRedoAction> = emptyList(),
-    val redoStack: List<UndoRedoAction> = emptyList()
+    val redoStack: List<UndoRedoAction> = emptyList(),
+    val editingTextBoxId: Int? = null, // New property to track which text box is being edited
+    val isInEditMode: Boolean = false   // New property to track if we're in edit mode
 )
 
 sealed class UndoRedoAction {
@@ -76,6 +78,10 @@ sealed interface MemeEditorAction {
     data object HideBottomSheet : MemeEditorAction
 
     data class ShareMeme(@DrawableRes val resId: Int) : MemeEditorAction
+
+    data class EnterEditMode(val textBoxId: Int) : MemeEditorAction
+    data object ExitEditMode : MemeEditorAction
+    data class UpdateEditingText(val newText: String) : MemeEditorAction
 
 
 }
@@ -125,7 +131,47 @@ class MemeEditorViewModel(
             is MemeEditorAction.ShowBottomSheet -> handleBottomSheetVisibility(true)
             is MemeEditorAction.HideBottomSheet -> handleBottomSheetVisibility(false)
             is MemeEditorAction.ShareMeme -> shareMeme(action.resId)
+            is MemeEditorAction.EnterEditMode -> enterEditMode(action.textBoxId)
+            is MemeEditorAction.ExitEditMode -> exitEditMode()
+            is MemeEditorAction.UpdateEditingText -> updateEditingText(action.newText)
         }
+    }
+
+    private fun enterEditMode(textBoxId: Int) {
+        _state = _state.copy(
+            editingTextBoxId = textBoxId,
+            isInEditMode = true
+        )
+    }
+
+    private fun exitEditMode() {
+        _state = _state.copy(
+            editingTextBoxId = null,
+            isInEditMode = false
+        )
+    }
+
+    private fun updateEditingText(newText: String) {
+        val editingId = state.editingTextBoxId ?: return
+
+        val updatedBoxes = state.textBoxes.map { textBox ->
+            if (textBox.id == editingId) {
+                textBox.copy(text = newText)
+            } else {
+                textBox
+            }
+        }
+
+        _state = _state.copy(
+            textBoxes = updatedBoxes,
+            currentlyEditedTextBox = state.currentlyEditedTextBox?.let { edited ->
+                if (edited.currentTextBox.id == editingId) {
+                    edited.copy(currentTextBox = edited.currentTextBox.copy(text = newText))
+                } else {
+                    edited
+                }
+            }
+        )
     }
 
     private fun shareMeme(resId: Int) {

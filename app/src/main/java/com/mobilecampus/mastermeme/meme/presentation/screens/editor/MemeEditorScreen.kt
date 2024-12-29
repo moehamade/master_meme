@@ -3,6 +3,8 @@ package com.mobilecampus.mastermeme.meme.presentation.screens.editor
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -16,6 +18,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -219,28 +222,36 @@ fun MemeEditorScreen(
                     onDelete = {
                         onAction(MemeEditorAction.DeleteTextBox(textBox.id))
                     },
-                    onDoubleClick = {
-                        onAction(MemeEditorAction.ShowEditTextDialog)
-                    },
                     onSelect = {
-                        if (state.currentlyEditedTextBox == null) {
-                            onAction(MemeEditorAction.SelectTextBox(textBox))
-                        }
+                        onAction(MemeEditorAction.SelectTextBox(textBox))
+                    },
+                    onDoubleClick = {
+                        onAction(MemeEditorAction.EnterEditMode(textBox.id))
+                    },
+                    onTextChange = { newText ->
+                        onAction(MemeEditorAction.UpdateEditingText(newText))
+                    },
+                    onEditingComplete = {
+                        onAction(MemeEditorAction.ExitEditMode)
                     },
                     isSelected = state.currentlyEditedTextBox?.currentTextBox?.id == textBox.id,
+                    isEditing = state.editingTextBoxId == textBox.id && state.isInEditMode
                 )
             }
 
-            // Edit Dialog
-            if (state.showEditDialog && state.currentlyEditedTextBox != null) {
-                EditTextDialog(
-                    initialText = state.currentlyEditedTextBox.currentTextBox.text,
-                    onDismiss = { onAction(MemeEditorAction.UpdateText()) },
-                    onConfirm = { newText ->
-                        onAction(MemeEditorAction.UpdateText(newText))
-                    }
-                )
-            }
+
+//            if (state.isInEditMode) {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .clickable(
+//                            interactionSource = remember { MutableInteractionSource() },
+//                            indication = null
+//                        ) {
+//                            onAction(MemeEditorAction.ExitEditMode)
+//                        }
+//                )
+//            }
 
             // Discard Changes Dialog
             if (state.showDiscardChangesConfirmationDialog) {
