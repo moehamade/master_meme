@@ -3,31 +3,14 @@ package com.mobilecampus.mastermeme.meme.data.local.use_case
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Typeface
-import android.graphics.drawable.Drawable
-import android.util.TypedValue
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
-import androidx.core.content.ContextCompat
-import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.meme.domain.data_source.MemeDataSource
 import com.mobilecampus.mastermeme.meme.domain.model.MemeItem
-import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
-import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeTextStyle
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.domain.use_case.SaveMemeUseCase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 import java.util.UUID
-import kotlin.math.roundToInt
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.core.content.res.ResourcesCompat
-import com.mobilecampus.mastermeme.meme.domain.MemeRenderer
+import com.mobilecampus.mastermeme.meme.presentation.screens.editor.util.MemeRenderer
 
 
 class SaveMemeUseCaseImpl(
