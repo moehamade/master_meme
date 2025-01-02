@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.meme.domain
+package com.mobilecampus.mastermeme.meme.presentation.screens.editor.util
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -104,15 +104,17 @@ class MemeRenderer(private val context: Context) {
         return Offset(originalPosition.x, adjustedY)
     }
 
-    private fun saveBitmap(bitmap: Bitmap, outputFile: File) {
-        try {
-            FileOutputStream(outputFile).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
+    private suspend fun saveBitmap(bitmap: Bitmap, outputFile: File) {
+        withContext(Dispatchers.IO) {
+            try {
+                FileOutputStream(outputFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
+                }
+            } catch (e: Exception) {
+                throw Exception("Failed to save meme internally: ${e.message}", e)
+            } finally {
+                bitmap.recycle()
             }
-        } catch (e: Exception) {
-            throw Exception("Failed to save meme internally: ${e.message}", e)
-        } finally {
-            bitmap.recycle()
         }
     }
 }

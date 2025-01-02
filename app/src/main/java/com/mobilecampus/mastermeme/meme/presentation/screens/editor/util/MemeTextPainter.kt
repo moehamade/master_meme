@@ -1,4 +1,4 @@
-package com.mobilecampus.mastermeme.meme.domain
+package com.mobilecampus.mastermeme.meme.presentation.screens.editor.util
 
 import android.content.Context
 import android.graphics.Canvas
@@ -57,7 +57,7 @@ internal class MemeTextPainter(
                         context.resources.displayMetrics
                     ),
                     2f, 2f,
-                    Color.Black.toArgb()
+                    Color.Companion.Black.toArgb()
                 )
                 paint.color = style.color.toFillColor().toArgb()
                 drawTextWithBaseline(canvas, text, position, paint)
@@ -90,7 +90,7 @@ internal class MemeTextPainter(
             }
             MemeFont.HANDWRITTEN -> {
                 val paint = basePaint.apply {
-                    typeface = Typeface.SERIF
+                    typeface= Typeface.SERIF
                     letterSpacing = 0.1f
                 }
                 drawOutlinedText(canvas, text, position, paint)
