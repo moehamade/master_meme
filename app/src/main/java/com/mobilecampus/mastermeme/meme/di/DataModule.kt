@@ -8,13 +8,15 @@ import com.mobilecampus.mastermeme.meme.domain.data_source.MemeDataSource
 import com.mobilecampus.mastermeme.meme.domain.util.FileManager
 import eu.anifantakis.lib.securepersist.PersistManager
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val dataModule = module {
     single { Room.databaseBuilder(get(), MemeDatabase::class.java, "meme_database").build() }
     single { get<MemeDatabase>().memeDao() }
-    single<MemeDataSource> { MemeLocalDataSourceImpl(get(), get()) }
-    single<FileManager> { FileManagerImpl(get()) }
+    singleOf(::MemeLocalDataSourceImpl).bind<MemeDataSource>()
+    singleOf(::FileManagerImpl).bind<FileManager>()
     single<PersistManager> {
         PersistManager(androidContext())
     }

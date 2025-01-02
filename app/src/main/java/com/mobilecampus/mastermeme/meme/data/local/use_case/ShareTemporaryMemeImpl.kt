@@ -2,7 +2,7 @@ package com.mobilecampus.mastermeme.meme.data.local.use_case
 
 import android.content.Context
 import androidx.compose.ui.unit.IntSize
-import com.mobilecampus.mastermeme.meme.domain.MemeRenderer
+import com.mobilecampus.mastermeme.meme.presentation.screens.editor.util.MemeRenderer
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
 import com.mobilecampus.mastermeme.meme.domain.use_case.ShareTemporaryMeme
 import com.mobilecampus.mastermeme.meme.domain.util.FileManager
