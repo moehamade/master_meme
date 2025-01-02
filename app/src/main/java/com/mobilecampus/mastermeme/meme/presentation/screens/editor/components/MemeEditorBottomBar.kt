@@ -55,6 +55,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -219,13 +220,14 @@ private fun RowScope.DefaultBottomBarContent(
 
     Button(
         onClick = onSaveMeme,
+        modifier = Modifier.padding(start = 8.dp),
         shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
-        Text("Save Meme", style = MaterialTheme.typography.labelLarge)
+        Text("Save Meme", style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center)
     }
 }
 
