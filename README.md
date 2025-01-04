@@ -16,8 +16,13 @@ MasterMeme is an Android application for creating and sharing memes. It offers a
 
 ## Screenshots
 
-![Screenshot 1](path/to/screenshot1.png)  
-![Screenshot 2](path/to/screenshot2.png)
+| **Screen Name**      | **Screenshot 1**                                                                                     | **Screenshot 2**                                                                                     |
+|-----------------------|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| **Home Screen**       | ![Home Screen 1](https://github.com/user-attachments/assets/55aaba6b-9f68-4cf1-b931-4c474682b63a)   | ![Home Screen 2](https://github.com/user-attachments/assets/578935ea-e616-42aa-a4c2-52c8df1a4001)   |
+| **Favorites**         | ![Favorites 1](https://github.com/user-attachments/assets/3ec9df8f-d289-4bc1-b843-076cf9fe4f95)     | ![Favorites 2](https://github.com/user-attachments/assets/b2e0bf24-cb6b-4e28-ad4a-1ab132c2ff73)     |
+| **Templates**         | ![Templates 1](https://github.com/user-attachments/assets/67b608f4-c87c-4950-b1c4-f54c0b64386a)     | ![Templates 2](https://github.com/user-attachments/assets/3ec9df8f-d289-4bc1-b843-076cf9fe4f95)     |
+| **Meme Editor**       | ![Editor 1](https://github.com/user-attachments/assets/578935ea-e616-42aa-a4c2-52c8df1a4001)        | ![Editor 2](https://github.com/user-attachments/assets/55aaba6b-9f68-4cf1-b931-4c474682b63a)        |
+| **Sharing Options**   | ![Sharing 1](https://github.com/user-attachments/assets/67b608f4-c87c-4950-b1c4-f54c0b64386a)       | ![Sharing 2](https://github.com/user-attachments/assets/b2e0bf24-cb6b-4e28-ad4a-1ab132c2ff73)       |
 
 ---
 
