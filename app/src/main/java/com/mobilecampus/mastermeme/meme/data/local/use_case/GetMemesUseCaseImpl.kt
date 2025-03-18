@@ -6,9 +6,7 @@ import com.mobilecampus.mastermeme.meme.domain.model.SortOption
 import com.mobilecampus.mastermeme.meme.domain.use_case.GetMemesUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 
-// Then implement the use case with flow combination
 class GetMemesUseCaseImpl(
     private val dataSource: MemeDataSource
 ) : GetMemesUseCase {

@@ -1,22 +1,15 @@
 package com.mobilecampus.mastermeme.meme.presentation.screens.editor.components
 
-import android.R.attr.singleLine
 import android.graphics.Typeface
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -25,9 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -39,9 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
@@ -57,7 +46,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -66,7 +54,6 @@ import androidx.core.content.res.ResourcesCompat
 import com.mobilecampus.mastermeme.R
 import com.mobilecampus.mastermeme.meme.domain.model.editor.MemeFont
 import com.mobilecampus.mastermeme.meme.domain.model.editor.TextBox
-import com.mobilecampus.mastermeme.ui.theme.MasterMemeTheme
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -119,14 +106,12 @@ fun DraggableTextBox(
         )
     }
 
-    // Update text without changing cursor position
     LaunchedEffect(textBox.text) {
         if (textFieldValue.text != textBox.text) {
             textFieldValue = textFieldValue.copy(text = textBox.text)
         }
     }
 
-    // Select all text when entering edit mode
     LaunchedEffect(isEditing) {
         if (isEditing) {
             textFieldValue = textFieldValue.copy(
@@ -256,21 +241,3 @@ fun DraggableTextBox(
         }
     }
 }
-
-//@Preview(showSystemUi = true, showBackground = true)
-//@Composable
-//private fun DraggableTextBoxPreview() {
-//    MasterMemeTheme {
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .wrapContentSize(Alignment.Center)
-//        ) {
-//            DraggableTextBox(
-//                textBox = TextBox(id = 0, text = "text"),
-//                imageOffset = Offset(0f, 0f),
-//                imageSize = IntSize(20, 20),
-//            )
-//        }
-//    }
-//}

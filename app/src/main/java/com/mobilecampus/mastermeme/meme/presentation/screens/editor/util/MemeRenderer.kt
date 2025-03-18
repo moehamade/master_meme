@@ -14,6 +14,7 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlin.collections.forEach
 import kotlin.math.roundToInt
+import androidx.core.graphics.createBitmap
 
 class MemeRenderer(private val context: Context) {
     suspend fun renderMeme(
@@ -60,11 +61,7 @@ class MemeRenderer(private val context: Context) {
         dimensions: MemeDimensions,
         textBoxes: List<TextBox>
     ): Bitmap {
-        return Bitmap.createBitmap(
-            dimensions.outputWidth,
-            dimensions.outputHeight,
-            Bitmap.Config.ARGB_8888
-        ).apply {
+        return createBitmap(dimensions.outputWidth, dimensions.outputHeight).apply {
             val canvas = Canvas(this)
             drawable.setBounds(0, 0, width, height)
             drawable.draw(canvas)

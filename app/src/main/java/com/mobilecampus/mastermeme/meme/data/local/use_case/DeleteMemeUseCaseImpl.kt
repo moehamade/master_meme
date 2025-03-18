@@ -6,6 +6,7 @@ import com.mobilecampus.mastermeme.meme.domain.util.FileManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class DeleteMemeUseCaseImpl(
     private val dataSource: MemeDataSource,
@@ -13,13 +14,12 @@ class DeleteMemeUseCaseImpl(
     private val applicationScope: CoroutineScope
 ) : DeleteMemeUseCase {
     override suspend operator fun invoke(ids: Set<Int>) {
-        applicationScope.launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             try {
-                // Delete from database and get URIs of deleted entries
                 val deletedImageUris = dataSource.deleteMemes(ids)
-
-                // Clean up the files
-                fileManager.deleteFiles(deletedImageUris)
+                applicationScope.launch(Dispatchers.IO) {
+                    fileManager.deleteFiles(deletedImageUris)
+                }
             } catch (e: Exception) {
                 throw Exception("Failed to delete memes: ${e.message}")
             }
